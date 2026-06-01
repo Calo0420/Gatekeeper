@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gatekeeper — AI Trust Gateway</title>
+<style>
+  :root {
+    --bg: #070C14;
+    --surface: #0D1623;
+    --surface-high: #142035;
+    --border: #1E3050;
+    --teal: #00D4AA;
+    --teal-dim: rgba(0,212,170,0.1);
+    --green: #22C55E;
+    --green-dim: rgba(34,197,94,0.1);
+    --red: #EF4444;
+    --red-dim: rgba(239,68,68,0.1);
+    --yellow: #F59E0B;
+    --text: #E2E8F0;
+    --text-mid: #94A3B8;
+    --text-dim: #64748B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 14px; }
+  .logo-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: linear-gradient(135deg, #00D4AA, #00A882);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 900; color: #000;
+  }
+  .logo-text { font-weight: 800; font-size: 16px; letter-spacing: 1px; }
+  .logo-sub { font-size: 10px; color: var(--text-dim); font-family: monospace; letter-spacing: 1px; }
+
+  .steps { display: flex; align-items: center; gap: 8px; }
+  .step-item {
+    padding: 5px 12px; border-radius: 4px;
+    font-size: 11px; font-family: monospace; font-weight: 700;
+    border: 1px solid var(--border); color: var(--text-dim);
+    transition: all 0.3s;
+  }
+  .step-item.active { border-color: var(--teal); color: var(--teal); background: var(--teal-dim); }
+  .step-item.done { border-color: var(--green); color: var(--green); }
+  .step-arrow { color: var(--border); }
+
+  /* MAIN */
+  .main { padding: 48px 20px 100px; }
+  .container { max-width: 620px; margin: 0 auto; }
+
+  /* SCREENS */
+  .screen { display: none; animation: fadeIn 0.3s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+  /* STATUS BADGE */
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 4px 14px; border-radius: 4px;
+    font-size: 11px; font-family: monospace; font-weight: 700; letter-spacing: 2px;
+  }
+  .badge-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+  }
+  .badge-pending { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: var(--yellow); }
+  .badge-pending .badge-dot { background: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
+  .badge-active { background: var(--teal-dim); border: 1px solid rgba(0,212,170,0.3); color: var(--teal); }
+  .badge-active .badge-dot { background: var(--teal); box-shadow: 0 0 8px var(--teal); animation: pulse 1.4s infinite; }
+  .badge-closed { background: var(--green-dim); border: 1px solid rgba(34,197,94,0.3); color: var(--green); }
+  .badge-closed .badge-dot { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* CARDS */
+  .card {
+    background: var(--surface-high);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .section-label {
+    font-size: 11px; color: var(--text-dim);
+    font-family: monospace; letter-spacing: 1px; margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* AGENT HEADER */
+  .agent-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .agent-icon {
+    width: 48px; height: 48px; border-radius: 10px;
+    background: linear-gradient(135deg, rgba(0,212,170,0.2), rgba(0,212,170,0.05));
+    border: 1px solid rgba(0,212,170,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .agent-name { font-weight: 700; font-size: 16px; }
+  .agent-id { color: var(--text-dim); font-size: 12px; font-family: monospace; margin-top: 2px; }
+
+  /* SCOPE LIST */
+  .scope-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  .scope-item span { font-family: monospace; font-size: 13px; color: var(--text-mid); }
+
+  /* INFO BOX */
+  .info-box {
+    background: var(--teal-dim);
+    border: 1px solid rgba(0,212,170,0.2);
+    border-radius: 8px; padding: 12px 16px;
+    margin-bottom: 28px;
+    font-size: 13px; color: var(--teal); line-height: 1.6;
+  }
+
+  /* BUTTONS */
+  .btn-primary {
+    width: 100%; padding: 16px;
+    background: linear-gradient(135deg, #00D4AA, #00A882);
+    border: none; border-radius: 10px;
+    color: #000; font-weight: 800; font-size: 15px;
+    cursor: pointer; letter-spacing: 1px;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 32px rgba(0,212,170,0.3); }
+  .btn-outline {
+    width: 100%; padding: 14px;
+    background: none;
+    border: 1px solid rgba(0,212,170,0.4);
+    border-radius: 10px;
+    color: var(--teal); font-weight: 700; font-size: 14px;
+    cursor: pointer; letter-spacing: 1px;
+    transition: all 0.2s;
+    font-family: inherit;
+    margin-top: 12px;
+  }
+  .btn-outline:hover { background: var(--teal-dim); }
+
+  .session-note { text-align: center; margin-top: 14px; font-size: 12px; color: var(--text-dim); }
+
+  /* SCREEN TITLES */
+  .screen-label { font-size: 13px; color: var(--teal); font-family: monospace; letter-spacing: 3px; margin-bottom: 6px; }
+  .screen-title { color: var(--text); font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+  .screen-sub { color: var(--text-mid); font-size: 14px; margin-bottom: 32px; }
+
+  /* SESSION BAR */
+  .session-bar {
+    display: flex; gap: 24px; padding: 12px 20px;
+    background: var(--surface-high);
+    border: 1px solid var(--border);
+    border-radius: 8px; margin-bottom: 20px;
+  }
+  .session-bar-item .sbi-label { font-family: monospace; font-size: 11px; color: var(--text-dim); margin-bottom: 2px; }
+  .session-bar-item .sbi-value { font-family: monospace; font-size: 13px; color: var(--text); font-weight: 600; }
+  .session-bar-item .sbi-value.green { color: var(--green); }
+
+  /* LOG TABLE */
+  .log-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .log-header {
+    display: flex; gap: 20px; padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px; font-family: monospace; color: var(--text-dim); letter-spacing: 1px;
+  }
+  .log-body { min-height: 180px; padding: 8px 0; }
+  .log-row {
+    display: flex; gap: 20px; padding: 10px 20px;
+    align-items: center;
+    animation: fadeIn 0.3s ease;
+    border-left: 3px solid transparent;
+    transition: background 0.3s;
+  }
+  .log-row.blocked { background: rgba(239,68,68,0.05); border-left-color: var(--red); }
+  .log-ts { flex: 0 0 130px; font-family: monospace; font-size: 11px; color: var(--text-dim); }
+  .log-resource { flex: 1; font-family: monospace; font-size: 13px; color: var(--text-mid); }
+  .log-action { flex: 0 0 60px; font-family: monospace; font-size: 11px; color: var(--text-dim); }
+  .log-status { flex: 0 0 100px; font-family: monospace; font-size: 11px; font-weight: 700; }
+  .log-status.allowed { color: var(--green); }
+  .log-status.blocked { color: var(--red); }
+
+  .log-init { padding: 24px 20px; color: var(--text-dim); font-size: 13px; font-family: monospace; }
+
+  /* ALERT */
+  .alert-box {
+    background: var(--red-dim);
+    border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 8px; padding: 12px 16px;
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 12px;
+    animation: fadeIn 0.4s ease;
+  }
+  .alert-box .alert-title { color: var(--red); font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+  .alert-box .alert-body { color: var(--text-mid); font-size: 12px; }
+
+  /* REPORT */
+  .report-card {
+    background: var(--surface-high);
+    border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .report-header {
+    padding: 20px 24px;
+    background: linear-gradient(135deg, var(--surface), var(--surface-high));
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .report-title { color: var(--text); font-weight: 800; font-size: 15px; letter-spacing: 0.5px; }
+  .report-sub { color: var(--text-dim); font-size: 11px; font-family: monospace; margin-top: 4px; }
+  .report-badge-clean {
+    padding: 6px 14px;
+    background: var(--green-dim);
+    border: 1px solid rgba(34,197,94,0.3);
+    border-radius: 6px;
+    color: var(--green); font-size: 11px; font-family: monospace; font-weight: 700;
+  }
+  .meta-grid { display: grid; grid-template-columns: 1fr 1fr; }
+  .meta-cell {
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+  .meta-cell:nth-child(even) { border-right: none; }
+  .meta-cell:nth-last-child(-n+2) { border-bottom: none; }
+  .meta-label { font-size: 11px; color: var(--text-dim); font-family: monospace; margin-bottom: 4px; }
+  .meta-value { font-size: 13px; color: var(--text); font-family: monospace; }
+
+  .report-logs { border-top: 1px solid var(--border); padding: 16px 24px 0; }
+  .report-log-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .report-log-row.blocked-row { background: var(--red-dim); border-color: rgba(239,68,68,0.2); }
+  .rl-status { font-family: monospace; font-size: 11px; font-weight: 700; flex: 0 0 90px; }
+  .rl-status.ok { color: var(--green); }
+  .rl-status.bl { color: var(--red); }
+  .rl-resource { font-family: monospace; font-size: 12px; color: var(--text-mid); flex: 1; }
+  .rl-ts { font-family: monospace; font-size: 11px; color: var(--text-dim); }
+
+  .report-summary {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .summary-text { font-size: 13px; color: var(--text-mid); }
+  .blocked-badge {
+    padding: 6px 14px;
+    background: var(--red-dim); border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 6px; color: var(--red); font-size: 11px; font-family: monospace;
+  }
+
+  .hash-box {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .hash-label { font-size: 11px; color: var(--text-dim); font-family: monospace; letter-spacing: 1px; margin-bottom: 8px; text-transform: uppercase; }
+  .hash-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border); border-radius: 6px;
+  }
+  .hash-value { flex: 1; font-size: 11px; color: var(--teal); font-family: monospace; word-break: break-all; }
+  .copy-btn {
+    background: none; border: 1px solid var(--border);
+    border-radius: 4px; padding: 4px 10px;
+    color: var(--text-dim); font-size: 11px; cursor: pointer;
+    transition: color 0.2s; font-family: inherit;
+    white-space: nowrap;
+  }
+  .copy-btn:hover { color: var(--teal); }
+  .hash-footer { font-size: 11px; color: var(--text-dim); margin-top: 8px; }
+
+  /* SUCCESS ICON */
+  .success-icon {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: var(--green-dim);
+    border: 2px solid var(--green);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; margin: 0 auto 16px;
+    box-shadow: 0 0 32px rgba(34,197,94,0.2);
+  }
+  .report-intro { text-align: center; margin-bottom: 28px; }
+
+  /* FOOTER */
+  .footer {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    padding: 10px 32px;
+    display: flex; justify-content: space-between;
+    font-size: 11px; font-family: monospace; color: var(--text-dim);
+  }
+
+  /* PROGRESS BAR */
+  .progress-bar {
+    height: 2px; background: var(--border); border-radius: 1px; margin-bottom: 32px;
+  }
+  .progress-fill {
+    height: 100%; background: var(--teal);
+    border-radius: 1px; transition: width 0.5s ease;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">G</div>
+    <div>
+      <div class="logo-text">GATEKEEPER</div>
+      <div class="logo-sub">AI TRUST GATEWAY · EVERFORTH INNOVATION LABS</div>
+    </div>
+  </div>
+  <div class="steps">
+    <div class="step-item active" id="step1">→ 01 APPROVAL</div>
+    <div class="step-arrow">›</div>
+    <div class="step-item" id="step2">02 MONITOR</div>
+    <div class="step-arrow">›</div>
+    <div class="step-item" id="step3">03 REPORT</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- SCREEN 1: APPROVAL -->
+  <div class="screen active" id="screen-approval">
+    <div class="container">
+      <div style="text-align:center;margin-bottom:32px">
+        <div class="screen-label">AUTHORIZATION REQUIRED</div>
+        <h2 class="screen-title" style="font-size:28px">Access Request Received</h2>
+        <p class="screen-sub">Agent requesting access to client environment</p>
+      </div>
+
+      <div class="card">
+        <div class="agent-header">
+          <div class="agent-icon">🤖</div>
+          <div style="flex:1">
+            <div class="agent-name">ScoutAgent</div>
+            <div class="agent-id">ID: scout-001 · v1.0</div>
+          </div>
+          <div class="badge badge-pending">
+            <div class="badge-dot"></div>
+            PENDING APPROVAL
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-label">REQUESTED ACCESS SCOPE</div>
+        <div class="scope-item"><span>📄</span><span>network_config.json</span></div>
+        <div class="scope-item"><span>📄</span><span>server_inventory.csv</span></div>
+        <div class="scope-item"><span>📄</span><span>performance_logs.txt</span></div>
+        <div class="scope-item"><span>📄</span><span>employee_salaries.xlsx</span></div>
+      </div>
+
+      <div class="info-box">
+        By approving, you authorize <strong>ScoutAgent</strong> to access only the listed resources within the approved scope. All access will be monitored in real time and a signed audit report will be generated on exit.
+      </div>
+
+      <button class="btn-primary" onclick="startMonitor()">✓ &nbsp; APPROVE ACCESS</button>
+      <div class="session-note">Session ID: 1B6A86A4 · <span id="ts-approval"></span></div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: MONITOR -->
+  <div class="screen" id="screen-monitor">
+    <div class="container" style="max-width:700px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px">
+        <div>
+          <div class="screen-label">LIVE MONITOR</div>
+          <h2 class="screen-title" style="margin-bottom:0">ScoutAgent Scan in Progress</h2>
+        </div>
+        <div class="badge badge-active" id="monitor-badge">
+          <div class="badge-dot"></div>
+          SESSION ACTIVE
+        </div>
+      </div>
+
+      <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
+
+      <div class="session-bar">
+        <div class="session-bar-item">
+          <div class="sbi-label">SESSION</div>
+          <div class="sbi-value">1B6A86A4</div>
+        </div>
+        <div class="session-bar-item">
+          <div class="sbi-label">AGENT</div>
+          <div class="sbi-value">scout-001</div>
+        </div>
+        <div class="session-bar-item">
+          <div class="sbi-label">APPROVED SCOPE</div>
+          <div class="sbi-value">3 resources</div>
+        </div>
+        <div class="session-bar-item">
+          <div class="sbi-label">STATUS</div>
+          <div class="sbi-value" id="scan-status">SCANNING</div>
+        </div>
+      </div>
+
+      <div class="log-table">
+        <div class="log-header">
+          <span class="log-ts">TIMESTAMP</span>
+          <span class="log-resource">RESOURCE</span>
+          <span class="log-action">ACTION</span>
+          <span class="log-status">STATUS</span>
+        </div>
+        <div class="log-body" id="log-body">
+          <div class="log-init" id="log-init">▋ Initializing scan...</div>
+        </div>
+      </div>
+
+      <div id="alert-blocked" style="display:none">
+        <div class="alert-box">
+          <span style="font-size:20px">⚠️</span>
+          <div>
+            <div class="alert-title">Unauthorized Access Attempt Blocked</div>
+            <div class="alert-body">employee_salaries.xlsx was not in the approved scope. Access denied and logged automatically.</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="exit-btn" style="display:none" onclick="showReport()">
+        🔒 &nbsp; EXIT SESSION &amp; GENERATE AUDIT REPORT
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: REPORT -->
+  <div class="screen" id="screen-report">
+    <div class="container" style="max-width:700px">
+      <div class="report-intro">
+        <div class="success-icon">✓</div>
+        <div class="screen-label">SESSION CLOSED</div>
+        <h2 class="screen-title">Audit Report Generated</h2>
+        <p class="screen-sub">Cryptographically signed · Tamper-evident · Immutable</p>
+      </div>
+
+      <div class="report-card">
+        <div class="report-header">
+          <div>
+            <div class="report-title">GATEKEEPER — AI TRUST AUDIT REPORT</div>
+            <div class="report-sub">Everforth Innovation Labs · Rogue Protocol · Galactic Hackathon 2026</div>
+          </div>
+          <div class="report-badge-clean">CLEAN EXIT</div>
+        </div>
+
+        <div class="meta-grid">
+          <div class="meta-cell"><div class="meta-label">SESSION ID</div><div class="meta-value">1B6A86A4</div></div>
+          <div class="meta-cell"><div class="meta-label">AGENT</div><div class="meta-value">ScoutAgent (scout-001)</div></div>
+          <div class="meta-cell"><div class="meta-label">APPROVED BY</div><div class="meta-value">Oscar</div></div>
+          <div class="meta-cell"><div class="meta-label">START</div><div class="meta-value" id="report-start"></div></div>
+          <div class="meta-cell"><div class="meta-label">EXIT</div><div class="meta-value" id="report-end"></div></div>
+          <div class="meta-cell"><div class="meta-label">DURATION</div><div class="meta-value">21 seconds</div></div>
+        </div>
+
+        <div class="report-logs">
+          <div class="section-label">ACCESS LOG</div>
+          <div class="report-log-row">
+            <span class="rl-status ok">✓ ALLOWED</span>
+            <span class="rl-resource">network_config.json</span>
+            <span class="rl-ts">05:03:45</span>
+          </div>
+          <div class="report-log-row">
+            <span class="rl-status ok">✓ ALLOWED</span>
+            <span class="rl-resource">server_inventory.csv</span>
+            <span class="rl-ts">05:03:47</span>
+          </div>
+          <div class="report-log-row">
+            <span class="rl-status ok">✓ ALLOWED</span>
+            <span class="rl-resource">performance_logs.txt</span>
+            <span class="rl-ts">05:03:48</span>
+          </div>
+          <div class="report-log-row blocked-row">
+            <span class="rl-status bl">✗ BLOCKED</span>
+            <span class="rl-resource">employee_salaries.xlsx</span>
+            <span class="rl-ts">05:03:49</span>
+          </div>
+          <div style="padding-bottom:16px"></div>
+        </div>
+
+        <div class="report-summary">
+          <div class="summary-text">
+            <strong style="color:var(--text)">4</strong> total requests ·
+            <strong style="color:var(--red)">1</strong> blocked ·
+            <strong style="color:var(--green)">3</strong> allowed
+          </div>
+          <div class="blocked-badge">1 BLOCKED ATTEMPT LOGGED</div>
+        </div>
+
+        <div class="hash-box">
+          <div class="hash-label">AUDIT HASH (SHA-256) · TAMPER-EVIDENT</div>
+          <div class="hash-row">
+            <span class="hash-value">1b23c2f8af7907cce343c5c3c665d0e266fe6f03c4714266b5b29f5aa70592b6</span>
+            <button class="copy-btn" onclick="copyHash(this)">Copy</button>
+          </div>
+          <div class="hash-footer">Generated: <span id="report-generated"></span> · Everforth Innovation Labs</div>
+        </div>
+      </div>
+
+      <button class="btn-outline" onclick="downloadReport()">↓ &nbsp; DOWNLOAD SIGNED PDF REPORT</button>
+      <button class="btn-outline" style="margin-top:8px;border-color:rgba(100,116,139,0.4);color:var(--text-dim)" onclick="resetDemo()">↺ &nbsp; RUN NEW SESSION</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <span>ROGUE PROTOCOL · GALACTIC HACKATHON 2026</span>
+  <span>SESSION 1B6A86A4 · ALL ACTIVITY LOGGED · <span id="footer-time"></span></span>
+</div>
+
+<script>
+  const SESSION_ID = "1B6A86A4";
+
+  const SCAN_ITEMS = [
+    { resource: "network_config.json", action: "READ", allowed: true, delay: 900 },
+    { resource: "server_inventory.csv", action: "READ", allowed: true, delay: 2000 },
+    { resource: "performance_logs.txt", action: "READ", allowed: true, delay: 3200 },
+    { resource: "employee_salaries.xlsx", action: "READ", allowed: false, delay: 4500 },
+  ];
+
+  let startTime, endTime;
+
+  function updateTime() {
+    const now = new Date().toUTCString();
+    document.getElementById('footer-time').textContent = now;
+  }
+  updateTime();
+  setInterval(updateTime, 1000);
+
+  document.getElementById('ts-approval').textContent = new Date().toUTCString();
+
+  function setStep(num) {
+    ['step1','step2','step3'].forEach((id, i) => {
+      const el = document.getElementById(id);
+      el.className = 'step-item';
+      if (i + 1 === num) el.className = 'step-item active';
+      if (i + 1 < num) el.className = 'step-item done';
+    });
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + id).classList.add('active');
+  }
+
+  function startMonitor() {
+    startTime = new Date();
+    showScreen('monitor');
+    setStep(2);
+
+    const logBody = document.getElementById('log-body');
+    const logInit = document.getElementById('log-init');
+    const progress = document.getElementById('progress');
+    const exitBtn = document.getElementById('exit-btn');
+    const alertBlocked = document.getElementById('alert-blocked');
+    const monBadge = document.getElementById('monitor-badge');
+    const scanStatus = document.getElementById('scan-status');
+
+    SCAN_ITEMS.forEach((item, idx) => {
+      setTimeout(() => {
+        if (idx === 0) logInit.style.display = 'none';
+
+        const row = document.createElement('div');
+        row.className = 'log-row' + (item.allowed ? '' : ' blocked');
+        row.innerHTML = `
+          <span class="log-ts">${new Date().toISOString().slice(11,23)}</span>
+          <span class="log-resource">${item.resource}</span>
+          <span class="log-action">${item.action}</span>
+          <span class="log-status ${item.allowed ? 'allowed' : 'blocked'}">${item.allowed ? '✓ ALLOWED' : '✗ BLOCKED'}</span>
+        `;
+        logBody.appendChild(row);
+
+        progress.style.width = ((idx + 1) / SCAN_ITEMS.length * 100) + '%';
+
+        if (!item.allowed) {
+          alertBlocked.style.display = 'block';
+        }
+
+        if (idx === SCAN_ITEMS.length - 1) {
+          endTime = new Date();
+          scanStatus.textContent = 'EXITED';
+          scanStatus.className = 'sbi-value green';
+          monBadge.className = 'badge badge-closed';
+          monBadge.innerHTML = '<div class="badge-dot"></div>SESSION CLOSED';
+          setTimeout(() => exitBtn.style.display = 'block', 600);
+        }
+      }, item.delay);
+    });
+  }
+
+  function showReport() {
+    showScreen('report');
+    setStep(3);
+
+    const now = new Date();
+    document.getElementById('report-start').textContent = startTime ? startTime.toISOString().replace('T',' ').slice(0,19) + ' UTC' : '2026-05-23 05:03:29 UTC';
+    document.getElementById('report-end').textContent = endTime ? endTime.toISOString().replace('T',' ').slice(0,19) + ' UTC' : '2026-05-23 05:03:50 UTC';
+    document.getElementById('report-generated').textContent = now.toISOString().replace('T',' ').slice(0,19) + ' UTC';
+  }
+
+  function copyHash(btn) {
+    const hash = '1b23c2f8af7907cce343c5c3c665d0e266fe6f03c4714266b5b29f5aa70592b6';
+    navigator.clipboard.writeText(hash).then(() => {
+      btn.textContent = '✓ Copied';
+      btn.style.color = '#22C55E';
+      setTimeout(() => { btn.textContent = 'Copy'; btn.style.color = ''; }, 2000);
+    });
+  }
+
+  function downloadReport() {
+    fetch('/session/1B6A86A4/report')
+      .then(r => {
+        if (r.ok) {
+          return r.blob().then(b => {
+            const url = URL.createObjectURL(b);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'gatekeeper_audit_1B6A86A4.pdf';
+            a.click();
+          });
+        } else {
+          alert('Run a live session first to generate a real report. Session 1B6A86A4 is a demo.');
+        }
+      })
+      .catch(() => alert('Run a live session first to generate a real report.'));
+  }
+
+  function resetDemo() {
+    document.getElementById('log-body').innerHTML = '<div class="log-init" id="log-init">▋ Initializing scan...</div>';
+    document.getElementById('alert-blocked').style.display = 'none';
+    document.getElementById('exit-btn').style.display = 'none';
+    document.getElementById('progress').style.width = '0%';
+    document.getElementById('scan-status').textContent = 'SCANNING';
+    document.getElementById('scan-status').className = 'sbi-value';
+    showScreen('approval');
+    setStep(1);
+    document.getElementById('ts-approval').textContent = new Date().toUTCString();
+  }
+</script>
+</body>
+</html>
