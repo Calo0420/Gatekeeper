@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gatekeeper — Approval</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; background: #0f1923; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+    .card { background: #1a2e3c; border-radius: 12px; padding: 40px; max-width: 520px; width: 100%; }
+    h1 { color: #37B3A2; margin: 0 0 8px; font-size: 24px; }
+    .badge { background: #37B3A2; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; display: inline-block; margin-bottom: 24px; }
+    .agent-box { background: #253548; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+    .label { color: #7A9FB0; font-size: 12px; text-transform: uppercase; margin-bottom: 4px; }
+    .value { font-size: 16px; font-weight: bold; }
+    .scope-list { list-style: none; padding: 0; margin: 0; }
+    .scope-list li { padding: 8px 12px; background: #1E3040; border-radius: 6px; margin-bottom: 6px; font-size: 14px; }
+    .scope-list li::before { content: "- "; }
+    .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+    .approve { background: #37B3A2; color: white; }
+    .session-id { color: #7A9FB0; font-size: 12px; margin-top: 16px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Gatekeeper</h1>
+    <span class="badge">APPROVAL REQUIRED</span>
+    <div class="agent-box">
+      <div class="label">Agent</div>
+      <div class="value">{{ session.agent_name }}</div>
+      <div style="margin-top:12px" class="label">Requesting access to</div>
+      <ul class="scope-list">
+        {% for item in scope %}
+        <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <p style="color:#7A9FB0;font-size:13px">By approving, you confirm this agent is authorized to access only the listed resources.</p>
+    <button class="btn approve" onclick="approve()">Approve Access</button>
+    <div class="session-id">Session: {{ session.session_id }}</div>
+  </div>
+  <script>
+    function approve() {
+      const sessionId = "{{ session.session_id }}";
+      fetch('/session/approve', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          session_id: sessionId,
+          approved_by: "Client",
+          approved_scope: {{ scope | tojson }}
+        })
+      }).then(r => r.json()).then(d => {
+        document.querySelector('.card').innerHTML = '<h1 style="color:#37B3A2">Access Approved</h1><p>Session ' + sessionId + ' is now active. The agent may proceed.</p>';
+      });
+    }
+  </script>
+</body>
+</html>
