@@ -21,7 +21,8 @@ def init_db():
         CREATE TABLE IF NOT EXISTS access_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             session_id TEXT, resource TEXT, action TEXT,
-            allowed INTEGER, reason TEXT, timestamp TEXT
+            allowed INTEGER, reason TEXT, ai_analysis TEXT,
+            timestamp TEXT
         );
     """)
     conn.commit()

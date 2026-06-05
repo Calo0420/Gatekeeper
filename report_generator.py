@@ -45,6 +45,28 @@ def generate_report(session: dict, logs: list) -> str:
     story.append(table)
     story.append(Spacer(1, 16))
 
+    # AI Risk Analysis section for blocked attempts
+    blocked_with_ai = [l for l in logs if not l["allowed"] and l.get("ai_analysis")]
+    if blocked_with_ai:
+        story.append(Paragraph("AI Risk Analysis (Powered by AWS Bedrock):", styles["Heading3"]))
+        for i, log in enumerate(blocked_with_ai, 1):
+            analysis = log["ai_analysis"] if isinstance(log["ai_analysis"], dict) \
+                else json.loads(log["ai_analysis"])
+            risk_level = analysis.get("risk_level", "UNKNOWN")
+            risk_color = {"LOW": "#2e7d32", "MEDIUM": "#f57f17",
+                          "HIGH": "#d32f2f", "CRITICAL": "#b71c1c"}.get(risk_level, "#333333")
+            story.append(Paragraph(
+                f"<b>Incident {i}:</b> {log['resource']} ({log['action']})", styles["Normal"]))
+            story.append(Paragraph(
+                f"<font color='{risk_color}'><b>Risk Level: {risk_level}</b></font>", styles["Normal"]))
+            story.append(Paragraph(f"<b>Explanation:</b> {analysis.get('risk_explanation', 'N/A')}", styles["Normal"]))
+            story.append(Paragraph(f"<b>Threat:</b> {analysis.get('threat_assessment', 'N/A')}", styles["Normal"]))
+            story.append(Paragraph(f"<b>Recommendation:</b> {analysis.get('recommendation', 'N/A')}", styles["Normal"]))
+            story.append(Paragraph(
+                f"<i>Model: {analysis.get('model_id', 'N/A')}</i>", styles["Normal"]))
+            story.append(Spacer(1, 10))
+        story.append(Spacer(1, 6))
+
     blocked = sum(1 for l in logs if not l["allowed"])
     story.append(Paragraph(f"Total: {len(logs)} requests | Blocked: {blocked}", styles["Normal"]))
     exit_status = "EXIT STATUS: CLEAN DISCONNECTION CONFIRMED" if blocked == 0 \
