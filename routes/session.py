@@ -64,6 +64,21 @@ def exit_session(req: ExitRequest):
             "pdf_url": f"/session/{req.session_id}/report",
             "total_requests": len(logs), "blocked": blocked}
 
+@router.get("/{session_id}/status")
+def session_status(session_id: str):
+    """ScoutAgent polls this to check if its session has been approved."""
+    db = get_db()
+    s = db.execute("SELECT session_id, status, approved_scope FROM sessions WHERE session_id=?",
+                   (session_id,)).fetchone()
+    db.close()
+    if not s:
+        raise HTTPException(404, "Session not found")
+    result = {"session_id": s["session_id"], "status": s["status"]}
+    if s["status"] == "active":
+        result["token"] = f"GK-{session_id}-TOKEN"
+        result["approved_scope"] = json.loads(s["approved_scope"] or "[]")
+    return result
+
 @router.get("/{session_id}/report")
 def download_report(session_id: str):
     path = f"reports/gatekeeper_{session_id}.pdf"
