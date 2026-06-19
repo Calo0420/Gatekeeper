@@ -15,8 +15,7 @@ AWS_PROFILE = "390346501482_Architect-PowerUser-Guarded"
 
 
 def get_bedrock_client():
-    session = boto3.Session(profile_name=AWS_PROFILE)
-    return session.client("bedrock-runtime", region_name=REGION)
+    return boto3.client("bedrock-runtime", region_name=REGION)
 
 
 def analyze_blocked_attempt(
