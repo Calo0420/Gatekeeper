@@ -16,6 +16,11 @@
     .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
     .approve { background: #37B3A2; color: white; }
     .session-id { color: #7A9FB0; font-size: 12px; margin-top: 16px; text-align: center; }
+    .policy-box { background: #2a1f1a; border: 1px solid #7a4b2e; border-left: 4px solid #F59E0B; border-radius: 8px; padding: 14px 16px; margin: 0 0 20px; }
+    .policy-title { color: #F59E0B; font-size: 13px; font-weight: bold; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .policy-text { color: #D9C3A8; font-size: 13px; line-height: 1.5; margin: 0 0 10px; }
+    .policy-frameworks { display: flex; flex-wrap: wrap; gap: 6px; }
+    .fw-chip { background: #1E3040; border: 1px solid #37506a; color: #9FC1D4; font-size: 11px; padding: 3px 9px; border-radius: 12px; font-family: monospace; }
   </style>
 </head>
 <body>
@@ -32,7 +37,15 @@
         {% endfor %}
       </ul>
     </div>
-    <p style="color:#7A9FB0;font-size:13px">By approving, you confirm this agent is authorized to access only the listed resources.</p>
+    <div class="policy-box">
+      <div class="policy-title">&#9888; RESTRICTED &mdash; Data Classification Policy</div>
+      <p class="policy-text">The following resource types are <strong>RESTRICTED</strong> per your data classification policy: <strong>credential files (.env, .pem, .key)</strong>. This agent may <em>detect</em> that these files exist but may <strong>not read their contents</strong>. Access will be monitored and logged.</p>
+      <div class="policy-frameworks">
+        <span class="fw-chip">CIS Control 3 &mdash; Data Protection</span>
+        <span class="fw-chip">NIST 800-53 AC-3 &mdash; Access Enforcement</span>
+      </div>
+    </div>
+    <p style="color:#7A9FB0;font-size:13px">By approving, you confirm this agent is authorized to access only the listed resources, subject to the data classification policy above.</p>
     <button class="btn approve" onclick="approve()">Approve Access</button>
     <div class="session-id">Session: {{ session.session_id }}</div>
   </div>

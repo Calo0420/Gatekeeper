@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from db import get_db
 from bedrock_analyzer import analyze_blocked_attempt
+from policy import classify as classify_policy
 
 router = APIRouter()
 
@@ -22,8 +23,19 @@ def request_access(req: AccessRequest):
     if not session:
         raise HTTPException(403, "Invalid or inactive session")
     approved_scope = json.loads(session["approved_scope"])
-    allowed = req.resource in approved_scope
-    reason = "Within approved scope" if allowed else "Resource not in approved scope — BLOCKED"
+
+    # Layer 1 - Data Classification Policy (CIS Control 3 / NIST 800-53 AC-3).
+    # Credential-file content reads are blocked even if otherwise in scope;
+    # detection of the same file is permitted (falls through to scope check).
+    policy = classify_policy(req.resource, req.action)
+
+    # Layer 2 - Least-privilege scope enforcement (existing behavior).
+    if policy["decision"] == "block":
+        allowed = False
+        reason = policy["reason"]
+    else:
+        allowed = req.resource in approved_scope
+        reason = "Within approved scope" if allowed else "Resource not in approved scope — BLOCKED"
 
     ai_analysis = None
     if not allowed:
@@ -33,7 +45,8 @@ def request_access(req: AccessRequest):
             resource=req.resource,
             action=req.action,
             approved_scope=approved_scope,
-            session_id=req.session_id
+            session_id=req.session_id,
+            policy=policy if policy["decision"] == "block" else None
         )
 
     db.execute("""INSERT INTO access_logs
@@ -47,6 +60,12 @@ def request_access(req: AccessRequest):
     db.close()
 
     result = {"allowed": allowed, "reason": reason, "resource": req.resource}
+    if policy["decision"] == "block":
+        result["policy"] = {
+            "control": "data_classification",
+            "classification": policy["classification"],
+            "frameworks": policy["frameworks"],
+        }
     if ai_analysis:
         result["ai_analysis"] = ai_analysis
     return result

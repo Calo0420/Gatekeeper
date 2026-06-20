@@ -4,3 +4,5 @@ __pycache__/
 gatekeeper.db
 reports/
 .env
+*.bak
+*.bak-*

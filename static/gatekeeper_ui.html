@@ -160,6 +160,9 @@
   .btn-outline:hover { background: var(--teal-dim); }
 
   .session-note { text-align: center; margin-top: 14px; font-size: 12px; color: var(--text-dim); }
+  .policy-note { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-left: 3px solid var(--yellow); border-radius: 8px; padding: 14px 16px; font-size: 13px; color: #E6CFA8; line-height: 1.55; margin-top: 4px; }
+  .policy-frameworks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .fw-chip { background: var(--surface); border: 1px solid var(--border); color: var(--text-mid); font-size: 11px; padding: 3px 9px; border-radius: 12px; font-family: monospace; }
 
   /* SCREEN TITLES */
   .screen-label { font-size: 13px; color: var(--teal); font-family: monospace; letter-spacing: 3px; margin-bottom: 6px; }
@@ -386,6 +389,15 @@
         <div class="scope-item"><span>📄</span><span>server_inventory.csv</span></div>
         <div class="scope-item"><span>📄</span><span>performance_logs.txt</span></div>
         <div class="scope-item"><span>📄</span><span>employee_salaries.xlsx</span></div>
+        <div class="divider"></div>
+        <div class="section-label" style="color:var(--yellow)">&#9888; RESTRICTED &mdash; DATA CLASSIFICATION POLICY</div>
+        <div class="policy-note">
+          Credential files (<strong>.env, .pem, .key</strong>) are classified <strong>CONFIDENTIAL</strong>. ScoutAgent may <em>detect</em> their existence but is <strong>blocked from reading their contents</strong>. All access is monitored and logged.
+          <div class="policy-frameworks">
+            <span class="fw-chip">CIS Control 3 &mdash; Data Protection</span>
+            <span class="fw-chip">NIST 800-53 AC-3 &mdash; Access Enforcement</span>
+          </div>
+        </div>
       </div>
 
       <div class="info-box">

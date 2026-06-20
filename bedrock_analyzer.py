@@ -24,12 +24,26 @@ def analyze_blocked_attempt(
     resource: str,
     action: str,
     approved_scope: list,
-    session_id: str
+    session_id: str,
+    policy: dict = None
 ) -> dict:
     """
     Calls Claude Sonnet 4.6 via Bedrock to analyze a blocked access attempt.
     Returns a risk analysis dict with explanation and severity.
     """
+    if policy:
+        policy_clause = (
+            "This was blocked by an enterprise DATA CLASSIFICATION POLICY.\n"
+            f"- Classification: {policy.get('classification')}\n"
+            f"- Governing standards: {', '.join(policy.get('frameworks', []))}\n"
+            "- Rule: AI agents may detect credential files but may not read their "
+            "contents.\n"
+            "Frame the analysis around credential/secret exposure and "
+            "least-privilege enforcement."
+        )
+    else:
+        policy_clause = "The agent attempted to access a resource OUTSIDE its approved scope."
+
     prompt = f"""You are a security analyst reviewing an AI agent access violation.
 
 INCIDENT DETAILS:
@@ -39,7 +53,7 @@ INCIDENT DETAILS:
 - Action Attempted: {action}
 - Approved Scope: {', '.join(approved_scope)}
 
-The agent attempted to access a resource OUTSIDE its approved scope.
+{policy_clause}
 
 Provide a concise security analysis in JSON format with these exact fields:
 {{
