@@ -1,7 +1,7 @@
 import uuid, json, os
 from datetime import datetime
 from fastapi import APIRouter, Request, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from db import get_db
@@ -96,3 +96,59 @@ def approval_ui(request: Request, session_id: str):
     return templates.TemplateResponse("approval.html", {
         "request": request, "session": dict(s),
         "scope": json.loads(s["requested_scope"])})
+
+
+@router.get("/list")
+def list_sessions():
+    """Recent Gatekeeper sessions (newest first) for the live UI."""
+    db = get_db()
+    rows = db.execute(
+        "SELECT session_id, agent_name, agent_id, status, started_at, "
+        "exited_at, approved_by FROM sessions ORDER BY started_at DESC LIMIT 25"
+    ).fetchall()
+    out = []
+    for r in rows:
+        d = dict(r)
+        counts = db.execute(
+            "SELECT COUNT(*) c, COALESCE(SUM(1-allowed),0) blocked "
+            "FROM access_logs WHERE session_id=?", (d["session_id"],)
+        ).fetchone()
+        d["total_requests"] = counts["c"]
+        d["blocked"] = counts["blocked"]
+        out.append(d)
+    db.close()
+    return JSONResponse(out)
+
+
+@router.get("/{session_id}/detail")
+def session_detail(session_id: str):
+    """Full session record + real access logs for the live UI."""
+    db = get_db()
+    s = db.execute("SELECT * FROM sessions WHERE session_id=?",
+                   (session_id,)).fetchone()
+    if not s:
+        db.close()
+        raise HTTPException(404, "Session not found")
+    logs = db.execute(
+        "SELECT resource, action, allowed, reason, ai_analysis, timestamp "
+        "FROM access_logs WHERE session_id=? ORDER BY timestamp", (session_id,)
+    ).fetchall()
+    db.close()
+
+    out = dict(s)
+    out["requested_scope"] = json.loads(out.get("requested_scope") or "[]")
+    out["approved_scope"] = json.loads(out.get("approved_scope") or "[]")
+
+    log_list = []
+    for l in logs:
+        d = dict(l)
+        if d.get("ai_analysis"):
+            try:
+                d["ai_analysis"] = json.loads(d["ai_analysis"])
+            except Exception:
+                pass
+        log_list.append(d)
+    out["access_logs"] = log_list
+    out["allowed_count"] = sum(1 for l in log_list if l["allowed"])
+    out["blocked_count"] = sum(1 for l in log_list if not l["allowed"])
+    return JSONResponse(out)

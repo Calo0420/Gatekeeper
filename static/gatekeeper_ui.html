@@ -164,6 +164,17 @@
   .policy-frameworks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
   .fw-chip { background: var(--surface); border: 1px solid var(--border); color: var(--text-mid); font-size: 11px; padding: 3px 9px; border-radius: 12px; font-family: monospace; }
 
+  /* STANDARDS / COMPLIANCE PANEL */
+  .std-control { display: flex; align-items: flex-start; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+  .std-control:last-of-type { border-bottom: none; }
+  .ctl-icon { color: var(--green); font-weight: 700; flex: 0 0 auto; margin-top: 1px; }
+  .ctl-text { font-size: 13px; color: var(--text); line-height: 1.4; }
+  .ctl-std { font-size: 11px; color: var(--text-dim); font-family: monospace; margin-top: 3px; }
+  .std-disclaimer { font-size: 11px; color: var(--text-dim); margin-top: 14px; font-style: italic; line-height: 1.5; }
+  .idle-box { text-align: center; padding: 36px 20px; color: var(--text-mid); font-size: 14px; line-height: 1.7; }
+  .idle-box code { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; font-size: 12px; color: var(--teal); }
+  .attest-banner { background: var(--green-dim); border: 1px solid rgba(34,197,94,0.3); border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; font-size: 13px; color: var(--green); line-height: 1.6; }
+
   /* SCREEN TITLES */
   .screen-label { font-size: 13px; color: var(--teal); font-family: monospace; letter-spacing: 3px; margin-bottom: 6px; }
   .screen-title { color: var(--text); font-size: 26px; font-weight: 700; margin-bottom: 8px; }
@@ -201,9 +212,9 @@
     transition: background 0.3s;
   }
   .log-row.blocked { background: rgba(239,68,68,0.05); border-left-color: var(--red); }
-  .log-ts { flex: 0 0 130px; font-family: monospace; font-size: 11px; color: var(--text-dim); }
-  .log-resource { flex: 1; font-family: monospace; font-size: 13px; color: var(--text-mid); }
-  .log-action { flex: 0 0 60px; font-family: monospace; font-size: 11px; color: var(--text-dim); }
+  .log-ts { flex: 0 0 100px; font-family: monospace; font-size: 11px; color: var(--text-dim); }
+  .log-resource { flex: 1; font-family: monospace; font-size: 13px; color: var(--text-mid); word-break: break-all; }
+  .log-action { flex: 0 0 70px; font-family: monospace; font-size: 11px; color: var(--text-dim); }
   .log-status { flex: 0 0 100px; font-family: monospace; font-size: 11px; font-weight: 700; }
   .log-status.allowed { color: var(--green); }
   .log-status.blocked { color: var(--red); }
@@ -220,7 +231,7 @@
     animation: fadeIn 0.4s ease;
   }
   .alert-box .alert-title { color: var(--red); font-weight: 700; font-size: 13px; margin-bottom: 2px; }
-  .alert-box .alert-body { color: var(--text-mid); font-size: 12px; }
+  .alert-box .alert-body { color: var(--text-mid); font-size: 12px; line-height: 1.5; }
 
   /* REPORT */
   .report-card {
@@ -244,6 +255,7 @@
     border-radius: 6px;
     color: var(--green); font-size: 11px; font-family: monospace; font-weight: 700;
   }
+  .report-badge-clean.has-blocks { background: var(--red-dim); border-color: rgba(239,68,68,0.3); color: var(--red); }
   .meta-grid { display: grid; grid-template-columns: 1fr 1fr; }
   .meta-cell {
     padding: 14px 24px;
@@ -253,7 +265,7 @@
   .meta-cell:nth-child(even) { border-right: none; }
   .meta-cell:nth-last-child(-n+2) { border-bottom: none; }
   .meta-label { font-size: 11px; color: var(--text-dim); font-family: monospace; margin-bottom: 4px; }
-  .meta-value { font-size: 13px; color: var(--text); font-family: monospace; }
+  .meta-value { font-size: 13px; color: var(--text); font-family: monospace; word-break: break-all; }
 
   .report-logs { border-top: 1px solid var(--border); padding: 16px 24px 0; }
   .report-log-row {
@@ -268,7 +280,7 @@
   .rl-status { font-family: monospace; font-size: 11px; font-weight: 700; flex: 0 0 90px; }
   .rl-status.ok { color: var(--green); }
   .rl-status.bl { color: var(--red); }
-  .rl-resource { font-family: monospace; font-size: 12px; color: var(--text-mid); flex: 1; }
+  .rl-resource { font-family: monospace; font-size: 12px; color: var(--text-mid); flex: 1; word-break: break-all; }
   .rl-ts { font-family: monospace; font-size: 11px; color: var(--text-dim); }
 
   .report-summary {
@@ -283,28 +295,7 @@
     border-radius: 6px; color: var(--red); font-size: 11px; font-family: monospace;
   }
 
-  .hash-box {
-    padding: 16px 24px;
-    border-top: 1px solid var(--border);
-    background: var(--surface);
-  }
-  .hash-label { font-size: 11px; color: var(--text-dim); font-family: monospace; letter-spacing: 1px; margin-bottom: 8px; text-transform: uppercase; }
-  .hash-row {
-    display: flex; align-items: center; gap: 12px;
-    padding: 10px 14px;
-    background: var(--bg);
-    border: 1px solid var(--border); border-radius: 6px;
-  }
-  .hash-value { flex: 1; font-size: 11px; color: var(--teal); font-family: monospace; word-break: break-all; }
-  .copy-btn {
-    background: none; border: 1px solid var(--border);
-    border-radius: 4px; padding: 4px 10px;
-    color: var(--text-dim); font-size: 11px; cursor: pointer;
-    transition: color 0.2s; font-family: inherit;
-    white-space: nowrap;
-  }
-  .copy-btn:hover { color: var(--teal); }
-  .hash-footer { font-size: 11px; color: var(--text-dim); margin-top: 8px; }
+  .attest-box { padding: 18px 24px; border-top: 1px solid var(--border); background: var(--surface); }
 
   /* SUCCESS ICON */
   .success-icon {
@@ -365,16 +356,26 @@
     <div class="container">
       <div style="text-align:center;margin-bottom:32px">
         <div class="screen-label">AUTHORIZATION REQUIRED</div>
-        <h2 class="screen-title" style="font-size:28px">Access Request Received</h2>
-        <p class="screen-sub">Agent requesting access to client environment</p>
+        <h2 class="screen-title" style="font-size:28px">Scanner Authorization</h2>
+        <p class="screen-sub">Gatekeeper will hold the scanner to recognized security standards</p>
       </div>
 
-      <div class="card">
+      <!-- idle state: no session yet -->
+      <div class="card" id="approval-idle">
+        <div class="idle-box">
+          No scanner session yet.<br>
+          Start a governed scan with <code>GATEKEEPER_SESSION=true</code> and it will appear here for authorization.<br><br>
+          <span style="color:var(--text-dim);font-size:12px">Watching for a session…</span>
+        </div>
+      </div>
+
+      <!-- real pending session -->
+      <div class="card" id="approval-card" style="display:none">
         <div class="agent-header">
-          <div class="agent-icon">🤖</div>
+          <div class="agent-icon">🛰️</div>
           <div style="flex:1">
-            <div class="agent-name">ScoutAgent</div>
-            <div class="agent-id">ID: scout-001 · v1.0</div>
+            <div class="agent-name" id="ap-agent-name">—</div>
+            <div class="agent-id" id="ap-agent-id">—</div>
           </div>
           <div class="badge badge-pending">
             <div class="badge-dot"></div>
@@ -384,28 +385,26 @@
 
         <div class="divider"></div>
 
-        <div class="section-label">REQUESTED ACCESS SCOPE</div>
-        <div class="scope-item"><span>📄</span><span>network_config.json</span></div>
-        <div class="scope-item"><span>📄</span><span>server_inventory.csv</span></div>
-        <div class="scope-item"><span>📄</span><span>performance_logs.txt</span></div>
-        <div class="scope-item"><span>📄</span><span>employee_salaries.xlsx</span></div>
+        <div class="section-label">REQUESTED ASSESSMENT SCOPE</div>
+        <div id="ap-scope"></div>
+
         <div class="divider"></div>
-        <div class="section-label" style="color:var(--yellow)">&#9888; RESTRICTED &mdash; DATA CLASSIFICATION POLICY</div>
-        <div class="policy-note">
-          Credential files (<strong>.env, .pem, .key</strong>) are classified <strong>CONFIDENTIAL</strong>. ScoutAgent may <em>detect</em> their existence but is <strong>blocked from reading their contents</strong>. All access is monitored and logged.
-          <div class="policy-frameworks">
-            <span class="fw-chip">CIS Control 3 &mdash; Data Protection</span>
-            <span class="fw-chip">NIST 800-53 AC-3 &mdash; Access Enforcement</span>
-          </div>
+
+        <div class="section-label">SECURITY STANDARDS ENFORCED</div>
+        <div class="policy-frameworks" style="margin-bottom:14px">
+          <span class="fw-chip">CIS Controls v8</span>
+          <span class="fw-chip">NIST SP 800-53</span>
         </div>
+        <div id="ap-standards"></div>
+        <div class="std-disclaimer">Gatekeeper enforces controls aligned to these frameworks. This is operational enforcement &amp; audit — not an external certification.</div>
       </div>
 
-      <div class="info-box">
-        By approving, you authorize <strong>ScoutAgent</strong> to access only the listed resources within the approved scope. All access will be monitored in real time and a signed audit report will be generated on exit.
+      <div class="info-box" id="approval-info" style="display:none">
+        By approving, you authorize this scanner to run <strong>only</strong> the listed read-only assessment modules, under the security controls above. Every action is monitored in real time and a signed audit report is generated on exit.
       </div>
 
-      <button class="btn-primary" onclick="startMonitor()">✓ &nbsp; APPROVE ACCESS</button>
-      <div class="session-note">Session ID: 1B6A86A4 · <span id="ts-approval"></span></div>
+      <button class="btn-primary" id="approve-btn" style="display:none" onclick="approve()">✓ &nbsp; AUTHORIZE UNDER THESE STANDARDS</button>
+      <div class="session-note" id="ap-note"></div>
     </div>
   </div>
 
@@ -415,7 +414,7 @@
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px">
         <div>
           <div class="screen-label">LIVE MONITOR</div>
-          <h2 class="screen-title" style="margin-bottom:0">ScoutAgent Scan in Progress</h2>
+          <h2 class="screen-title" style="margin-bottom:0" id="mon-title">Scan in Progress</h2>
         </div>
         <div class="badge badge-active" id="monitor-badge">
           <div class="badge-dot"></div>
@@ -423,36 +422,38 @@
         </div>
       </div>
 
-      <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
-
       <div class="session-bar">
         <div class="session-bar-item">
           <div class="sbi-label">SESSION</div>
-          <div class="sbi-value">1B6A86A4</div>
+          <div class="sbi-value" id="mon-session">—</div>
         </div>
         <div class="session-bar-item">
           <div class="sbi-label">AGENT</div>
-          <div class="sbi-value">scout-001</div>
+          <div class="sbi-value" id="mon-agent">—</div>
         </div>
         <div class="session-bar-item">
-          <div class="sbi-label">APPROVED SCOPE</div>
-          <div class="sbi-value">3 resources</div>
+          <div class="sbi-label">REQUESTS</div>
+          <div class="sbi-value" id="mon-count">0</div>
+        </div>
+        <div class="session-bar-item">
+          <div class="sbi-label">BLOCKED</div>
+          <div class="sbi-value" id="mon-blocked">0</div>
         </div>
         <div class="session-bar-item">
           <div class="sbi-label">STATUS</div>
-          <div class="sbi-value" id="scan-status">SCANNING</div>
+          <div class="sbi-value" id="scan-status">ACTIVE</div>
         </div>
       </div>
 
       <div class="log-table">
         <div class="log-header">
-          <span class="log-ts">TIMESTAMP</span>
+          <span class="log-ts">TIME</span>
           <span class="log-resource">RESOURCE</span>
           <span class="log-action">ACTION</span>
-          <span class="log-status">STATUS</span>
+          <span class="log-status">DECISION</span>
         </div>
         <div class="log-body" id="log-body">
-          <div class="log-init" id="log-init">▋ Initializing scan...</div>
+          <div class="log-init" id="log-init">▋ Waiting for scanner activity…</div>
         </div>
       </div>
 
@@ -460,14 +461,14 @@
         <div class="alert-box">
           <span style="font-size:20px">⚠️</span>
           <div>
-            <div class="alert-title">Unauthorized Access Attempt Blocked</div>
-            <div class="alert-body">employee_salaries.xlsx was not in the approved scope. Access denied and logged automatically.</div>
+            <div class="alert-title">Policy enforcement — content read blocked</div>
+            <div class="alert-body" id="alert-body">A credential file was detected but its contents were blocked per the data classification policy.</div>
           </div>
         </div>
       </div>
 
-      <button class="btn-primary" id="exit-btn" style="display:none" onclick="showReport()">
-        🔒 &nbsp; EXIT SESSION &amp; GENERATE AUDIT REPORT
+      <button class="btn-primary" id="exit-btn" style="display:none" onclick="loadReport(CURRENT)">
+        🔒 &nbsp; VIEW AUDIT REPORT
       </button>
     </div>
   </div>
@@ -478,74 +479,52 @@
       <div class="report-intro">
         <div class="success-icon">✓</div>
         <div class="screen-label">SESSION CLOSED</div>
-        <h2 class="screen-title">Audit Report Generated</h2>
-        <p class="screen-sub">Cryptographically signed · Tamper-evident · Immutable</p>
+        <h2 class="screen-title">Compliance Audit Report</h2>
+        <p class="screen-sub">Scanner activity certified against enforced security standards</p>
       </div>
 
       <div class="report-card">
         <div class="report-header">
           <div>
             <div class="report-title">GATEKEEPER — AI TRUST AUDIT REPORT</div>
-            <div class="report-sub">Everforth Innovation Labs · Rogue Protocol · Galactic Hackathon 2026</div>
+            <div class="report-sub">Everforth Innovation Labs · Compliance Attestation</div>
           </div>
-          <div class="report-badge-clean">CLEAN EXIT</div>
+          <div class="report-badge-clean" id="report-verdict">CLEAN EXIT</div>
         </div>
 
         <div class="meta-grid">
-          <div class="meta-cell"><div class="meta-label">SESSION ID</div><div class="meta-value">1B6A86A4</div></div>
-          <div class="meta-cell"><div class="meta-label">AGENT</div><div class="meta-value">ScoutAgent (scout-001)</div></div>
-          <div class="meta-cell"><div class="meta-label">APPROVED BY</div><div class="meta-value">Oscar</div></div>
-          <div class="meta-cell"><div class="meta-label">START</div><div class="meta-value" id="report-start"></div></div>
-          <div class="meta-cell"><div class="meta-label">EXIT</div><div class="meta-value" id="report-end"></div></div>
-          <div class="meta-cell"><div class="meta-label">DURATION</div><div class="meta-value">21 seconds</div></div>
+          <div class="meta-cell"><div class="meta-label">SESSION ID</div><div class="meta-value" id="r-session">—</div></div>
+          <div class="meta-cell"><div class="meta-label">AGENT</div><div class="meta-value" id="r-agent">—</div></div>
+          <div class="meta-cell"><div class="meta-label">APPROVED BY</div><div class="meta-value" id="r-approver">—</div></div>
+          <div class="meta-cell"><div class="meta-label">START</div><div class="meta-value" id="report-start">—</div></div>
+          <div class="meta-cell"><div class="meta-label">EXIT</div><div class="meta-value" id="report-end">—</div></div>
+          <div class="meta-cell"><div class="meta-label">DURATION</div><div class="meta-value" id="r-duration">—</div></div>
         </div>
 
         <div class="report-logs">
-          <div class="section-label">ACCESS LOG</div>
-          <div class="report-log-row">
-            <span class="rl-status ok">✓ ALLOWED</span>
-            <span class="rl-resource">network_config.json</span>
-            <span class="rl-ts">05:03:45</span>
-          </div>
-          <div class="report-log-row">
-            <span class="rl-status ok">✓ ALLOWED</span>
-            <span class="rl-resource">server_inventory.csv</span>
-            <span class="rl-ts">05:03:47</span>
-          </div>
-          <div class="report-log-row">
-            <span class="rl-status ok">✓ ALLOWED</span>
-            <span class="rl-resource">performance_logs.txt</span>
-            <span class="rl-ts">05:03:48</span>
-          </div>
-          <div class="report-log-row blocked-row">
-            <span class="rl-status bl">✗ BLOCKED</span>
-            <span class="rl-resource">employee_salaries.xlsx</span>
-            <span class="rl-ts">05:03:49</span>
-          </div>
+          <div class="section-label">ACCESS LOG (REAL)</div>
+          <div id="r-logs"></div>
           <div style="padding-bottom:16px"></div>
         </div>
 
         <div class="report-summary">
-          <div class="summary-text">
-            <strong style="color:var(--text)">4</strong> total requests ·
-            <strong style="color:var(--red)">1</strong> blocked ·
-            <strong style="color:var(--green)">3</strong> allowed
-          </div>
-          <div class="blocked-badge">1 BLOCKED ATTEMPT LOGGED</div>
+          <div class="summary-text" id="r-summary">—</div>
+          <div class="blocked-badge" id="r-blocked-badge" style="display:none"></div>
         </div>
 
-        <div class="hash-box">
-          <div class="hash-label">AUDIT HASH (SHA-256) · TAMPER-EVIDENT</div>
-          <div class="hash-row">
-            <span class="hash-value">1b23c2f8af7907cce343c5c3c665d0e266fe6f03c4714266b5b29f5aa70592b6</span>
-            <button class="copy-btn" onclick="copyHash(this)">Copy</button>
+        <div class="attest-box">
+          <div class="section-label" style="margin-bottom:14px">COMPLIANCE ATTESTATION — STANDARDS ENFORCED</div>
+          <div class="policy-frameworks" style="margin-bottom:14px">
+            <span class="fw-chip">CIS Controls v8</span>
+            <span class="fw-chip">NIST SP 800-53</span>
           </div>
-          <div class="hash-footer">Generated: <span id="report-generated"></span> · Everforth Innovation Labs</div>
+          <div id="r-standards"></div>
+          <div class="std-disclaimer">This assessment was conducted under Gatekeeper enforcement of controls aligned to the frameworks above. Operational enforcement &amp; audit — not an external certification.</div>
         </div>
       </div>
 
       <button class="btn-outline" onclick="downloadReport()">↓ &nbsp; DOWNLOAD SIGNED PDF REPORT</button>
-      <button class="btn-outline" style="margin-top:8px;border-color:rgba(100,116,139,0.4);color:var(--text-dim)" onclick="resetDemo()">↺ &nbsp; RUN NEW SESSION</button>
+      <button class="btn-outline" style="margin-top:8px;border-color:rgba(100,116,139,0.4);color:var(--text-dim)" onclick="resetView()">↺ &nbsp; BACK TO LIVE</button>
     </div>
   </div>
 
@@ -553,30 +532,35 @@
 
 <!-- FOOTER -->
 <div class="footer">
-  <span>ROGUE PROTOCOL · GALACTIC HACKATHON 2026</span>
-  <span>SESSION 1B6A86A4 · ALL ACTIVITY LOGGED · <span id="footer-time"></span></span>
+  <span>EVERFORTH INNOVATION LABS · AI TRUST GATEWAY</span>
+  <span><span id="footer-session">NO SESSION</span> · ALL ACTIVITY LOGGED · <span id="footer-time"></span></span>
 </div>
 
 <script>
-  const SESSION_ID = "1B6A86A4";
-
-  const SCAN_ITEMS = [
-    { resource: "network_config.json", action: "READ", allowed: true, delay: 900 },
-    { resource: "server_inventory.csv", action: "READ", allowed: true, delay: 2000 },
-    { resource: "performance_logs.txt", action: "READ", allowed: true, delay: 3200 },
-    { resource: "employee_salaries.xlsx", action: "READ", allowed: false, delay: 4500 },
+  // ── Honest, enforced controls (aligned to CIS v8 + NIST 800-53) ──────────────
+  const STD_CONTROLS = [
+    ["Human authorization required before any scan", "NIST 800-53 AC-3 · Access Enforcement"],
+    ["Least privilege — only approved read-only modules execute", "NIST 800-53 AC-6 · CIS Control 6"],
+    ["Credential files detected but never read", "NIST 800-53 AC-3 · CIS Control 3 (Data Protection)"],
+    ["Read-only operation — zero writes to the target system", "Read-only assurance"],
+    ["Full audit trail — every request logged, signed report", "NIST 800-53 AU-2 / AU-12"],
   ];
-
-  let startTime, endTime;
-
-  function updateTime() {
-    const now = new Date().toUTCString();
-    document.getElementById('footer-time').textContent = now;
+  function standardsHTML() {
+    return STD_CONTROLS.map(c =>
+      '<div class="std-control"><span class="ctl-icon">✓</span><div>' +
+      '<div class="ctl-text">' + c[0] + '</div>' +
+      '<div class="ctl-std">' + c[1] + '</div></div></div>'
+    ).join('');
   }
-  updateTime();
-  setInterval(updateTime, 1000);
 
-  document.getElementById('ts-approval').textContent = new Date().toUTCString();
+  let CURRENT = null;        // current session_id being shown
+  let pollTimer = null;
+  let listTimer = null;
+  let viewingReportId = null;
+
+  function esc(s) { return (s == null ? '' : String(s)).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+  function fmtTime(iso) { if (!iso) return '—'; try { return iso.replace('T',' ').slice(0,19) + ' UTC'; } catch(e){ return iso; } }
+  function fmtClock(iso) { if (!iso) return ''; try { return iso.slice(11,19); } catch(e){ return ''; } }
 
   function setStep(num) {
     ['step1','step2','step3'].forEach((id, i) => {
@@ -586,104 +570,208 @@
       if (i + 1 < num) el.className = 'step-item done';
     });
   }
-
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-' + id).classList.add('active');
   }
 
-  function startMonitor() {
-    startTime = new Date();
-    showScreen('monitor');
-    setStep(2);
+  function updateClock() { document.getElementById('footer-time').textContent = new Date().toUTCString(); }
+  updateClock(); setInterval(updateClock, 1000);
 
-    const logBody = document.getElementById('log-body');
-    const logInit = document.getElementById('log-init');
-    const progress = document.getElementById('progress');
-    const exitBtn = document.getElementById('exit-btn');
-    const alertBlocked = document.getElementById('alert-blocked');
-    const monBadge = document.getElementById('monitor-badge');
-    const scanStatus = document.getElementById('scan-status');
-
-    SCAN_ITEMS.forEach((item, idx) => {
-      setTimeout(() => {
-        if (idx === 0) logInit.style.display = 'none';
-
-        const row = document.createElement('div');
-        row.className = 'log-row' + (item.allowed ? '' : ' blocked');
-        row.innerHTML = `
-          <span class="log-ts">${new Date().toISOString().slice(11,23)}</span>
-          <span class="log-resource">${item.resource}</span>
-          <span class="log-action">${item.action}</span>
-          <span class="log-status ${item.allowed ? 'allowed' : 'blocked'}">${item.allowed ? '✓ ALLOWED' : '✗ BLOCKED'}</span>
-        `;
-        logBody.appendChild(row);
-
-        progress.style.width = ((idx + 1) / SCAN_ITEMS.length * 100) + '%';
-
-        if (!item.allowed) {
-          alertBlocked.style.display = 'block';
-        }
-
-        if (idx === SCAN_ITEMS.length - 1) {
-          endTime = new Date();
-          scanStatus.textContent = 'EXITED';
-          scanStatus.className = 'sbi-value green';
-          monBadge.className = 'badge badge-closed';
-          monBadge.innerHTML = '<div class="badge-dot"></div>SESSION CLOSED';
-          setTimeout(() => exitBtn.style.display = 'block', 600);
-        }
-      }, item.delay);
-    });
+  async function getJSON(url) {
+    const r = await fetch(url, { cache: 'no-store' });
+    if (!r.ok) throw new Error(r.status);
+    return r.json();
   }
 
-  function showReport() {
-    showScreen('report');
-    setStep(3);
-
-    const now = new Date();
-    document.getElementById('report-start').textContent = startTime ? startTime.toISOString().replace('T',' ').slice(0,19) + ' UTC' : '2026-05-23 05:03:29 UTC';
-    document.getElementById('report-end').textContent = endTime ? endTime.toISOString().replace('T',' ').slice(0,19) + ' UTC' : '2026-05-23 05:03:50 UTC';
-    document.getElementById('report-generated').textContent = now.toISOString().replace('T',' ').slice(0,19) + ' UTC';
+  // ── Router: pick the most relevant real session ─────────────────────────────
+  async function init() {
+    document.getElementById('ap-standards').innerHTML = standardsHTML();
+    document.getElementById('r-standards').innerHTML = standardsHTML();
+    pollList();
+    listTimer = setInterval(pollList, 4000);
   }
 
-  function copyHash(btn) {
-    const hash = '1b23c2f8af7907cce343c5c3c665d0e266fe6f03c4714266b5b29f5aa70592b6';
-    navigator.clipboard.writeText(hash).then(() => {
-      btn.textContent = '✓ Copied';
-      btn.style.color = '#22C55E';
-      setTimeout(() => { btn.textContent = 'Copy'; btn.style.color = ''; }, 2000);
-    });
+  async function pollList() {
+    let sessions = [];
+    try { sessions = await getJSON('/session/list'); } catch(e) { return; }
+    const pending = sessions.find(s => s.status === 'pending');
+    const active  = sessions.find(s => s.status === 'active');
+    const closed  = sessions.find(s => s.status === 'closed');
+
+    if (pollTimer) return;                 // actively monitoring — never interrupt
+    if (pending) { renderApproval(pending); return; }
+    if (active)  { startMonitor(active.session_id); return; }
+    if (closed)  { if (viewingReportId !== closed.session_id) loadReport(closed.session_id); return; }
+    showIdle();
+  }
+
+  function showIdle() {
+    showScreen('approval'); setStep(1);
+    document.getElementById('approval-idle').style.display = 'block';
+    document.getElementById('approval-card').style.display = 'none';
+    document.getElementById('approval-info').style.display = 'none';
+    document.getElementById('approve-btn').style.display = 'none';
+    document.getElementById('ap-note').textContent = '';
+    document.getElementById('footer-session').textContent = 'NO SESSION';
+  }
+
+  function renderApproval(sess) {
+    CURRENT = sess.session_id;
+    showScreen('approval'); setStep(1);
+    document.getElementById('approval-idle').style.display = 'none';
+    document.getElementById('approval-card').style.display = 'block';
+    document.getElementById('approval-info').style.display = 'block';
+    document.getElementById('approve-btn').style.display = 'block';
+    document.getElementById('ap-agent-name').textContent = sess.agent_name || 'Scanner';
+    document.getElementById('ap-agent-id').textContent = 'ID: ' + (sess.agent_id || '—');
+    document.getElementById('footer-session').textContent = 'SESSION ' + sess.session_id;
+    document.getElementById('ap-note').textContent = 'Session ' + sess.session_id + ' · awaiting authorization';
+    // fetch detail to show the real requested scope (tools)
+    getJSON('/session/' + sess.session_id + '/detail').then(d => {
+      const scope = d.requested_scope || [];
+      document.getElementById('ap-scope').innerHTML = scope.length
+        ? scope.map(s => '<div class="scope-item"><span>▸</span><span>' + esc(s) + '</span></div>').join('')
+        : '<div class="idle-box" style="padding:14px">No scope declared.</div>';
+    }).catch(()=>{});
+  }
+
+  async function approve() {
+    if (!CURRENT) return;
+    const btn = document.getElementById('approve-btn');
+    btn.textContent = 'Authorizing…'; btn.disabled = true;
+    let scope = [];
+    try { const d = await getJSON('/session/' + CURRENT + '/detail'); scope = d.requested_scope || []; } catch(e){}
+    try {
+      await fetch('/session/approve', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ session_id: CURRENT, approved_by: 'Operator', approved_scope: scope })
+      });
+    } catch(e) {}
+    btn.textContent = '✓ Authorized'; btn.disabled = false;
+    startMonitor(CURRENT);
+  }
+
+  // ── Monitor: poll real access logs ──────────────────────────────────────────
+  function startMonitor(sid) {
+    CURRENT = sid;
+    showScreen('monitor'); setStep(2);
+    document.getElementById('footer-session').textContent = 'SESSION ' + sid;
+    document.getElementById('mon-session').textContent = sid;
+    document.getElementById('log-body').innerHTML = '<div class="log-init" id="log-init">▋ Waiting for scanner activity…</div>';
+    document.getElementById('exit-btn').style.display = 'none';
+    if (pollTimer) clearInterval(pollTimer);
+    pollMonitor();
+    pollTimer = setInterval(pollMonitor, 2000);
+  }
+
+  async function pollMonitor() {
+    let d;
+    try { d = await getJSON('/session/' + CURRENT + '/detail'); } catch(e) { return; }
+    document.getElementById('mon-agent').textContent = d.agent_id || d.agent_name || '—';
+    document.getElementById('mon-count').textContent = d.access_logs.length;
+    document.getElementById('mon-blocked').textContent = d.blocked_count;
+
+    const body = document.getElementById('log-body');
+    if (d.access_logs.length) {
+      body.innerHTML = d.access_logs.map(l => {
+        const ok = !!l.allowed;
+        return '<div class="log-row' + (ok ? '' : ' blocked') + '" title="' + esc(l.reason) + '">' +
+          '<span class="log-ts">' + fmtClock(l.timestamp) + '</span>' +
+          '<span class="log-resource">' + esc(l.resource) + '</span>' +
+          '<span class="log-action">' + esc(l.action) + '</span>' +
+          '<span class="log-status ' + (ok ? 'allowed' : 'blocked') + '">' + (ok ? '✓ ALLOWED' : '✗ BLOCKED') + '</span>' +
+          '</div>';
+      }).join('');
+    }
+
+    // surface the most recent block
+    const lastBlock = [...d.access_logs].reverse().find(l => !l.allowed);
+    if (lastBlock) {
+      document.getElementById('alert-blocked').style.display = 'block';
+      document.getElementById('alert-body').textContent = esc(lastBlock.reason).slice(0, 240);
+    }
+
+    if (d.status === 'closed') {
+      clearInterval(pollTimer); pollTimer = null;
+      document.getElementById('scan-status').textContent = 'CLOSED';
+      document.getElementById('scan-status').className = 'sbi-value green';
+      const mb = document.getElementById('monitor-badge');
+      mb.className = 'badge badge-closed';
+      mb.innerHTML = '<div class="badge-dot"></div>SESSION CLOSED';
+      document.getElementById('exit-btn').style.display = 'block';
+    }
+  }
+
+  // ── Report: real session + logs + attestation ───────────────────────────────
+  async function loadReport(sid) {
+    let d;
+    try { d = await getJSON('/session/' + sid + '/detail'); } catch(e) { return; }
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    CURRENT = sid;
+    viewingReportId = sid;
+    showScreen('report'); setStep(3);
+    document.getElementById('footer-session').textContent = 'SESSION ' + sid;
+    document.getElementById('r-session').textContent = sid;
+    document.getElementById('r-agent').textContent = (d.agent_name || 'Scanner') + ' (' + (d.agent_id || '—') + ')';
+    document.getElementById('r-approver').textContent = d.approved_by || '—';
+    document.getElementById('report-start').textContent = fmtTime(d.started_at);
+    document.getElementById('report-end').textContent = fmtTime(d.exited_at);
+
+    let dur = '—';
+    if (d.started_at && d.exited_at) {
+      const s = (new Date(d.exited_at) - new Date(d.started_at)) / 1000;
+      if (!isNaN(s) && s >= 0) dur = Math.round(s) + ' seconds';
+    }
+    document.getElementById('r-duration').textContent = dur;
+
+    const logs = d.access_logs || [];
+    document.getElementById('r-logs').innerHTML = logs.length ? logs.map(l => {
+      const ok = !!l.allowed;
+      return '<div class="report-log-row' + (ok ? '' : ' blocked-row') + '" title="' + esc(l.reason) + '">' +
+        '<span class="rl-status ' + (ok ? 'ok' : 'bl') + '">' + (ok ? '✓ ALLOWED' : '✗ BLOCKED') + '</span>' +
+        '<span class="rl-resource">' + esc(l.resource) + ' · ' + esc(l.action) + '</span>' +
+        '<span class="rl-ts">' + fmtClock(l.timestamp) + '</span></div>';
+    }).join('') : '<div class="idle-box" style="padding:14px">No access requests recorded for this session.</div>';
+
+    document.getElementById('r-summary').innerHTML =
+      '<strong style="color:var(--text)">' + logs.length + '</strong> total requests · ' +
+      '<strong style="color:var(--red)">' + d.blocked_count + '</strong> blocked · ' +
+      '<strong style="color:var(--green)">' + d.allowed_count + '</strong> allowed';
+
+    const verdict = document.getElementById('report-verdict');
+    const badge = document.getElementById('r-blocked-badge');
+    if (d.blocked_count > 0) {
+      verdict.textContent = 'POLICY ENFORCED'; verdict.className = 'report-badge-clean has-blocks';
+      badge.style.display = 'inline-block';
+      badge.textContent = d.blocked_count + ' BLOCKED & LOGGED';
+    } else {
+      verdict.textContent = 'CLEAN EXIT'; verdict.className = 'report-badge-clean';
+      badge.style.display = 'none';
+    }
   }
 
   function downloadReport() {
-    fetch('/session/1B6A86A4/report')
-      .then(r => {
-        if (r.ok) {
-          return r.blob().then(b => {
-            const url = URL.createObjectURL(b);
-            const a = document.createElement('a');
-            a.href = url; a.download = 'gatekeeper_audit_1B6A86A4.pdf';
-            a.click();
-          });
-        } else {
-          alert('Run a live session first to generate a real report. Session 1B6A86A4 is a demo.');
-        }
-      })
-      .catch(() => alert('Run a live session first to generate a real report.'));
+    if (!CURRENT) return;
+    fetch('/session/' + CURRENT + '/report').then(r => {
+      if (r.ok) return r.blob().then(b => {
+        const url = URL.createObjectURL(b);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'gatekeeper_audit_' + CURRENT + '.pdf'; a.click();
+      });
+      alert('Signed PDF not available for this session yet.');
+    }).catch(() => alert('Could not fetch the signed PDF.'));
   }
 
-  function resetDemo() {
-    document.getElementById('log-body').innerHTML = '<div class="log-init" id="log-init">▋ Initializing scan...</div>';
-    document.getElementById('alert-blocked').style.display = 'none';
-    document.getElementById('exit-btn').style.display = 'none';
-    document.getElementById('progress').style.width = '0%';
-    document.getElementById('scan-status').textContent = 'SCANNING';
-    document.getElementById('scan-status').className = 'sbi-value';
-    showScreen('approval');
-    setStep(1);
-    document.getElementById('ts-approval').textContent = new Date().toUTCString();
+  function resetView() {
+    CURRENT = null;
+    viewingReportId = null;
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    showIdle();
+    pollList();
   }
+
+  init();
 </script>
 </body>
 </html>
