@@ -346,6 +346,7 @@
     <div class="step-arrow">›</div>
     <div class="step-item" id="step3">03 REPORT</div>
   </div>
+  <button onclick="resetView()" title="Reset to ready" style="background:none;border:1px solid var(--border);color:var(--text-mid);font-family:monospace;font-size:11px;font-weight:700;padding:6px 14px;border-radius:5px;cursor:pointer;letter-spacing:1px">&#8635; RESET</button>
 </div>
 
 <!-- MAIN -->
@@ -363,9 +364,9 @@
       <!-- idle state: no session yet -->
       <div class="card" id="approval-idle">
         <div class="idle-box">
-          No scanner session yet.<br>
-          Start a governed scan with <code>GATEKEEPER_SESSION=true</code> and it will appear here for authorization.<br><br>
-          <span style="color:var(--text-dim);font-size:12px">Watching for a session…</span>
+          No active scan right now.<br>
+          When <strong>ScoutAgent</strong> starts a scan (its RUN SCAN button), the session appears here for your authorization.<br><br>
+          <span style="color:var(--text-dim);font-size:12px">● Watching for ScoutAgent…</span>
         </div>
         <div class="divider"></div>
         <div class="section-label">SECURITY STANDARDS ENFORCED</div>
@@ -565,6 +566,7 @@
   let pollTimer = null;
   let listTimer = null;
   let viewingReportId = null;
+  let _suppressClosed = false;
 
   function esc(s) { return (s == null ? '' : String(s)).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
   function fmtTime(iso) { if (!iso) return '—'; try { return iso.replace('T',' ').slice(0,19) + ' UTC'; } catch(e){ return iso; } }
@@ -610,9 +612,9 @@
     const closed  = sessions.find(s => s.status === 'closed');
 
     if (pollTimer) return;                 // actively monitoring — never interrupt
-    if (pending) { renderApproval(pending); return; }
-    if (active)  { startMonitor(active.session_id); return; }
-    if (closed)  { if (viewingReportId !== closed.session_id) loadReport(closed.session_id); return; }
+    if (pending) { _suppressClosed = false; renderApproval(pending); return; }
+    if (active)  { _suppressClosed = false; startMonitor(active.session_id); return; }
+    if (closed && !_suppressClosed)  { if (viewingReportId !== closed.session_id) loadReport(closed.session_id); return; }
     showIdle();
   }
 
@@ -776,9 +778,9 @@
   function resetView() {
     CURRENT = null;
     viewingReportId = null;
+    _suppressClosed = true;
     if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
     showIdle();
-    pollList();
   }
 
   init();
