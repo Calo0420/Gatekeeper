@@ -2,7 +2,7 @@ import os, hashlib, json
 from datetime import datetime
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
 from reportlab.lib import colors
 
 os.makedirs("reports", exist_ok=True)
@@ -13,6 +13,13 @@ def generate_report(session: dict, logs: list) -> str:
     doc = SimpleDocTemplate(path, pagesize=letter)
     styles = getSampleStyleSheet()
     story = []
+
+    _logo = os.path.join(os.path.dirname(os.path.abspath(__file__)), "everforth_logo.png")
+    if os.path.exists(_logo):
+        _img = Image(_logo, width=200, height=200 * 180.0 / 1415.0)
+        _img.hAlign = "LEFT"
+        story.append(_img)
+        story.append(Spacer(1, 10))
 
     story.append(Paragraph("GATEKEEPER — AI TRUST AUDIT REPORT", styles["Title"]))
     story.append(Paragraph("Everforth Innovation Labs | Rogue Protocol", styles["Normal"]))
@@ -74,9 +81,18 @@ def generate_report(session: dict, logs: list) -> str:
     story.append(Paragraph(exit_status, styles["Heading3"]))
     story.append(Spacer(1, 12))
 
-    audit_hash = hashlib.sha256(
-        json.dumps({"session": session_id, "logs": len(logs), "blocked": blocked}).encode()
-    ).hexdigest()
+    # Tamper-evident audit hash over the FULL log content (see audit.py), not just
+    # counts — altering what was accessed vs reported changes the hash.
+    from audit import compute_hash
+    audit_hash = compute_hash(session_id, logs)
+    # Persist the issued hash as a sidecar so it can be independently re-verified later.
+    try:
+        with open(f"reports/gatekeeper_{session_id}.audit.json", "w") as _af:
+            json.dump({"session_id": session_id, "audit_hash": audit_hash,
+                       "count": len(logs), "blocked": blocked,
+                       "issued_at": datetime.utcnow().isoformat() + "Z"}, _af)
+    except Exception:
+        pass
     story.append(Paragraph(f"Audit Hash (SHA-256): {audit_hash}", styles["Normal"]))
     story.append(Paragraph(f"Generated: {datetime.utcnow().isoformat()} UTC", styles["Normal"]))
     doc.build(story)

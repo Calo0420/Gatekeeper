@@ -82,9 +82,9 @@ Client Browser
                │
        ┌───────┴────────┐
        │                │
-  Mock Agent       Approval UI
-  (ScoutAgent       (HTML/JS
-   simulator)       frontend)
+  ScoutAgent       Approval UI
+  (live agent —     (HTML/JS
+   real API calls)  frontend)
 ```
 
 ---
@@ -96,10 +96,10 @@ Client Browser
 | Backend API | Python + FastAPI |
 | Database | SQLite |
 | PDF Generation | ReportLab |
-| Audit Integrity | SHA-256 cryptographic hash |
+| Audit Integrity | SHA-256 over full log content · independently verifiable |
 | Frontend | Vanilla HTML/CSS/JS |
 | Deployment | Ubuntu VPS |
-| Cloud (Phase 2) | AWS Bedrock |
+| AI risk analysis | AWS Bedrock — Claude Sonnet 4.6 (live) |
 
 ---
 
@@ -107,7 +107,7 @@ Client Browser
 
 ```bash
 # Clone the repo
-git clone https://github.com/Calo0420/Gatekeeper.git
+git clone https://github.com/Apex-accelerators/Gatekeeper.git
 cd Gatekeeper
 
 # Set up environment
@@ -265,14 +265,29 @@ Generated: 2026-05-23T05:03:50 UTC
 
 ---
 
+## 🔎 Verify It Yourself
+
+The audit hash isn't "trust me" — it's math the client can run. Every report is signed with a SHA-256 over the **full access-log content** (not just counts), so altering *what was accessed vs. what was reported* changes the hash.
+
+```bash
+# Recompute from the database and compare to the signed report
+python3 verify_audit.py <SESSION_ID>
+#   OK  MATCH    — audit integrity verified
+#   !!  MISMATCH — the access record was altered after signing
+```
+
+Flip a single BLOCKED entry to ALLOWED and the recomputed hash no longer matches the signed report. That is how a client's security team independently proves the audit trail was never changed — without taking anyone's word for it.
+
+---
+
 ## 🗺️ Roadmap
 
 | Phase | Features |
 |-------|---------|
-| ✅ MVP (now) | Approval UI, live monitor, signed PDF report, mock agent |
-| 🔜 Phase 2 | Azure Key Vault signature, AWS Bedrock anomaly detection |
-| 🔜 Phase 3 | Multi-agent support, client portal, ServiceNow integration |
-| 🔜 Phase 4 | Windows desktop client (Chaperon), enterprise SSO |
+| ✅ MVP | Approval UI, live monitor, signed PDF audit report |
+| ✅ Live (now) | Real ScoutAgent integration · AWS Bedrock (Claude Sonnet 4.6) risk analysis · tamper-evident SHA-256 audit + independent verifier (`verify_audit.py`) |
+| 🔜 Next | Azure Key Vault signatures · multi-agent support · client portal · ServiceNow integration |
+| 🔜 Later | Windows desktop client (Chaperon) · enterprise SSO |
 
 ---
 

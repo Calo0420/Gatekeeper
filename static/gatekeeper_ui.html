@@ -567,6 +567,7 @@
   let listTimer = null;
   let viewingReportId = null;
   let _suppressClosed = false;
+  let _firstList = true, _loadBaselineClosedId = null;
 
   function esc(s) { return (s == null ? '' : String(s)).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
   function fmtTime(iso) { if (!iso) return '—'; try { return iso.replace('T',' ').slice(0,19) + ' UTC'; } catch(e){ return iso; } }
@@ -610,11 +611,15 @@
     function _ageMin(iso){ try { return (Date.now() - new Date(iso+'Z').getTime())/60000; } catch(e){ return 99999; } }
     const active  = sessions.find(s => s.status === 'active' && _ageMin(s.started_at) < 30);
     const closed  = sessions.find(s => s.status === 'closed');
+    // On first load, remember the latest already-closed session so a page refresh
+    // lands on the ready screen instead of auto-reopening an old report. Only a
+    // session that closes AFTER load (one we just watched live) auto-opens its report.
+    if (_firstList) { _firstList = false; _loadBaselineClosedId = closed ? closed.session_id : null; }
 
     if (pollTimer) return;                 // actively monitoring — never interrupt
     if (pending) { _suppressClosed = false; renderApproval(pending); return; }
     if (active)  { _suppressClosed = false; startMonitor(active.session_id); return; }
-    if (closed && !_suppressClosed)  { if (viewingReportId !== closed.session_id) loadReport(closed.session_id); return; }
+    if (closed && !_suppressClosed && closed.session_id !== _loadBaselineClosedId)  { if (viewingReportId !== closed.session_id) loadReport(closed.session_id); return; }
     showIdle();
   }
 
