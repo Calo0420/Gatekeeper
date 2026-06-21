@@ -367,6 +367,14 @@
           Start a governed scan with <code>GATEKEEPER_SESSION=true</code> and it will appear here for authorization.<br><br>
           <span style="color:var(--text-dim);font-size:12px">Watching for a session…</span>
         </div>
+        <div class="divider"></div>
+        <div class="section-label">SECURITY STANDARDS ENFORCED</div>
+        <div class="policy-frameworks" style="margin-bottom:14px">
+          <span class="fw-chip">CIS Controls v8</span>
+          <span class="fw-chip">NIST SP 800-53</span>
+        </div>
+        <div id="idle-standards"></div>
+        <div class="std-disclaimer">Gatekeeper enforces controls aligned to these frameworks. Operational enforcement &amp; audit &mdash; not an external certification.</div>
       </div>
 
       <!-- real pending session -->
@@ -588,6 +596,7 @@
   async function init() {
     document.getElementById('ap-standards').innerHTML = standardsHTML();
     document.getElementById('r-standards').innerHTML = standardsHTML();
+    var _idle=document.getElementById('idle-standards'); if(_idle) _idle.innerHTML = standardsHTML();
     pollList();
     listTimer = setInterval(pollList, 4000);
   }
@@ -596,7 +605,8 @@
     let sessions = [];
     try { sessions = await getJSON('/session/list'); } catch(e) { return; }
     const pending = sessions.find(s => s.status === 'pending');
-    const active  = sessions.find(s => s.status === 'active');
+    function _ageMin(iso){ try { return (Date.now() - new Date(iso+'Z').getTime())/60000; } catch(e){ return 99999; } }
+    const active  = sessions.find(s => s.status === 'active' && _ageMin(s.started_at) < 30);
     const closed  = sessions.find(s => s.status === 'closed');
 
     if (pollTimer) return;                 // actively monitoring — never interrupt
