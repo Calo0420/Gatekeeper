@@ -412,6 +412,13 @@
         By approving, you authorize this scanner to run <strong>only</strong> the listed read-only assessment modules, under the security controls above. Every action is monitored in real time and a signed audit report is generated on exit.
       </div>
 
+      <div id="operator-token-box" style="display:none;margin-bottom:10px">
+        <input type="password" id="operator-token-input" placeholder="Operator token"
+               style="width:100%;box-sizing:border-box;padding:9px 12px;border-radius:6px;
+                      border:1px solid #2A3F4A;background:#0F1B22;color:#E8F1F5;
+                      font-family:inherit;font-size:13px" />
+        <div id="operator-token-error" style="display:none;color:#E5555A;font-size:11px;margin-top:5px"></div>
+      </div>
       <button class="btn-primary" id="approve-btn" style="display:none" onclick="approve()">✓ &nbsp; AUTHORIZE UNDER THESE STANDARDS</button>
       <div class="session-note" id="ap-note"></div>
     </div>
@@ -640,6 +647,7 @@
     document.getElementById('approval-card').style.display = 'block';
     document.getElementById('approval-info').style.display = 'block';
     document.getElementById('approve-btn').style.display = 'block';
+    document.getElementById('operator-token-box').style.display = _operatorToken ? 'none' : 'block';
     document.getElementById('ap-agent-name').textContent = sess.agent_name || 'Scanner';
     document.getElementById('ap-agent-id').textContent = 'ID: ' + (sess.agent_id || '—');
     document.getElementById('footer-session').textContent = 'SESSION ' + sess.session_id;
@@ -653,18 +661,43 @@
     }).catch(()=>{});
   }
 
+  let _operatorToken = '';
+
   async function approve() {
     if (!CURRENT) return;
+    const errBox = document.getElementById('operator-token-error');
+    errBox.style.display = 'none';
+    const tokenInput = document.getElementById('operator-token-input');
+    const token = _operatorToken || tokenInput.value;
+    if (!token) {
+      errBox.textContent = 'Operator token required to authorize.';
+      errBox.style.display = 'block';
+      return;
+    }
     const btn = document.getElementById('approve-btn');
     btn.textContent = 'Authorizing…'; btn.disabled = true;
     let scope = [];
     try { const d = await getJSON('/session/' + CURRENT + '/detail'); scope = d.requested_scope || []; } catch(e){}
     try {
-      await fetch('/session/approve', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
+      const r = await fetch('/session/approve', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json', 'X-Operator-Token': token},
         body: JSON.stringify({ session_id: CURRENT, approved_by: 'Operator', approved_scope: scope })
       });
-    } catch(e) {}
+      if (!r.ok) {
+        const msg = r.status === 401 ? 'Invalid operator token.' : 'Approval failed (' + r.status + ').';
+        errBox.textContent = msg;
+        errBox.style.display = 'block';
+        btn.textContent = '✓ &nbsp; AUTHORIZE UNDER THESE STANDARDS'; btn.disabled = false;
+        return;
+      }
+      _operatorToken = token; // remember for the rest of this browser tab session
+    } catch(e) {
+      errBox.textContent = 'Network error — could not reach Gatekeeper.';
+      errBox.style.display = 'block';
+      btn.textContent = '✓ &nbsp; AUTHORIZE UNDER THESE STANDARDS'; btn.disabled = false;
+      return;
+    }
     btn.textContent = '✓ Authorized'; btn.disabled = false;
     startMonitor(CURRENT);
   }
