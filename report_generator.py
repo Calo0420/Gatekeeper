@@ -83,17 +83,26 @@ def generate_report(session: dict, logs: list) -> str:
 
     # Tamper-evident audit hash over the FULL log content (see audit.py), not just
     # counts — altering what was accessed vs reported changes the hash.
-    from audit import compute_hash
+    from audit import compute_hash, hash_mode
     audit_hash = compute_hash(session_id, logs)
+    mode = hash_mode()
     # Persist the issued hash as a sidecar so it can be independently re-verified later.
     try:
         with open(f"reports/gatekeeper_{session_id}.audit.json", "w") as _af:
-            json.dump({"session_id": session_id, "audit_hash": audit_hash,
+            json.dump({"session_id": session_id, "audit_hash": audit_hash, "hash_mode": mode,
                        "count": len(logs), "blocked": blocked,
                        "issued_at": datetime.utcnow().isoformat() + "Z"}, _af)
     except Exception:
         pass
-    story.append(Paragraph(f"Audit Hash (SHA-256): {audit_hash}", styles["Normal"]))
+    if mode == "hmac-sha256":
+        story.append(Paragraph(f"Audit Hash (HMAC-SHA256, keyed): {audit_hash}", styles["Normal"]))
+    else:
+        story.append(Paragraph(f"Audit Hash (SHA-256, unkeyed): {audit_hash}", styles["Normal"]))
+        story.append(Paragraph(
+            "Note: GATEKEEPER_AUDIT_KEY is not configured on this server. This hash confirms "
+            "the report matches the database at generation time but can be recomputed by "
+            "anyone with database access. Configure the key for cryptographic tamper evidence.",
+            styles["Normal"]))
     story.append(Paragraph(f"Generated: {datetime.utcnow().isoformat()} UTC", styles["Normal"]))
     doc.build(story)
     return path

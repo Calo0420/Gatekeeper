@@ -20,7 +20,7 @@ import sqlite3
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from audit import compute_hash
+from audit import compute_hash, hash_mode
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 DB = os.path.join(BASE, "gatekeeper.db")
@@ -59,11 +59,13 @@ def main():
         sys.exit(2)
 
     recomputed = compute_hash(a.session_id, logs)
+    mode = hash_mode()
     issued = issued_hash(a.session_id, a.expected)
     blocked = sum(1 for l in logs if not l["allowed"])
 
     print("  session    : %s" % a.session_id)
     print("  log entries : %d  (blocked: %d)" % (len(logs), blocked))
+    print("  hash mode   : %s%s" % (mode, "  (WARNING: unkeyed, forgeable by anyone with DB access)" if mode == "sha256-unkeyed" else ""))
     print("  recomputed  : %s" % recomputed)
     print("  issued      : %s" % (issued or "(no issued hash on file)"))
 
