@@ -1,134 +1,104 @@
-# 🔐 Gatekeeper — AI Trust Gateway
+# Gatekeeper — AI Trust Gateway
 
-> *"Every AI deployment runs on trust me bro. This is the receipt."*
+Gatekeeper is a governance layer that sits between an AI agent and a client's environment. A human must authorize a session before it runs, every access request is evaluated in real time against policy, and every session closes with a signed audit trail that can be independently re-verified from the raw logs.
 
-**Gatekeeper** is a middleware trust layer that sits between any AI agent and a client environment. It enforces approved access scope, monitors every data request in real time, blocks unauthorized access automatically, and generates a cryptographically signed audit report on clean exit.
-
-Built by **Rogue Protocol** for the **Everforth Galactic Hackathon 2026**.
+Built by Oscar Reyes Luna, Everforth Innovation Labs, as part of the ScoutAgent 2.0 accelerator.
 
 ---
 
-## 🎯 The Problem
+## How this is actually used
 
-Every AI agent deployed at a client site today operates on verbal trust.
-
-There is no standard proof of what was accessed, what was blocked, or that the agent disconnected cleanly. This single issue blocks the majority of enterprise AI deployments — clients refuse to let AI tools touch their environments because there is no receipt, no audit trail, and no verifiable proof of what happened.
-
-**Consultants say: "trust me."**
-**Clients say: no.**
+Gatekeeper is not sold as a standalone product. It is an internal tool used alongside ScoutAgent 2.0 during client engagements: a scan runs against a prospective or existing client's environment, Gatekeeper governs and logs exactly what that scan touched, and the resulting findings and audit report are what the engagement is built around. The value isn't the license, it's the assessment and the consulting work that follows it. Gatekeeper is the reason a client is willing to let that scan happen against production infrastructure in the first place.
 
 ---
 
-## ✅ The Solution
+## Where this actually fits
 
-Gatekeeper operates in three phases:
+AI agent governance is not an empty category. Microsoft publishes an open source Agent Governance Toolkit doing policy enforcement, identity, and tamper-evident audit logging across a dozen agent frameworks. Several other open source projects in this space use stronger primitives than Gatekeeper does today, hash-chained ledgers, formally verified state machines, asymmetric signing.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  PHASE 1 — APPROVED ENTRY                                    │
-│  Agent declares access scope → Client reviews and approves  │
-│  Gatekeeper logs the session contract                        │
-├─────────────────────────────────────────────────────────────┤
-│  PHASE 2 — MONITORED ACCESS                                  │
-│  Every request passes through Gatekeeper                    │
-│  In-scope → logged and allowed                              │
-│  Out-of-scope → blocked automatically and flagged           │
-├─────────────────────────────────────────────────────────────┤
-│  PHASE 3 — CERTIFIED EXIT                                    │
-│  Agent disconnects → Gatekeeper generates signed PDF report │
-│  Session ID · timestamps · access log · SHA-256 hash        │
-└─────────────────────────────────────────────────────────────┘
-```
+What Gatekeeper is not trying to be is a general-purpose governance platform for any agent framework. It is a purpose-built trust gate for one specific workflow: an AI-driven infrastructure scan against a client's live environment, with a human approval step and a signed report that a client's own security team can verify without taking anyone's word for it. That is a narrower claim than "the only AI trust gateway," and it's the honest one.
 
 ---
 
-## 🚀 Live Demo
+## What it actually does
 
-**→ [http://147.93.135.84:8001](http://147.93.135.84:8001)**
+**Session approval.** ScoutAgent registers a session and its requested scope. Nothing runs until a human clicks Authorize in the Gatekeeper UI and supplies the operator token, a shared secret that ScoutAgent itself never has access to, so the AI agent cannot self-approve its own session under any circumstance. If the operator token isn't configured on the server at all, approval is refused outright rather than falling back to an open door.
 
-Try it yourself:
-1. Open the link — see ScoutAgent requesting access
-2. Click **Approve Access**
-3. Watch the live scan — three resources allowed, one blocked
-4. Click **Exit Session** — audit report generates instantly
-5. See the SHA-256 signed receipt
+**Real-time policy enforcement.** Every file access and service interaction the agent attempts is evaluated against a policy engine aligned to CIS Controls v8 and NIST SP 800-53. Credential files are detected but their contents are never read, enforced at the gateway, not left to the model's judgment. If Gatekeeper itself becomes unreachable, mid-scan, timeout, connection refused, server error, every pending and subsequent request is denied by default.
+
+**Signed, independently verifiable audit trail.** Every session closes with a report showing exactly what was requested, what was allowed, and what was blocked. When `GATEKEEPER_AUDIT_KEY` is configured, the report is signed with HMAC-SHA256, an attacker with database or report-file access cannot forge a matching hash without also knowing that key, which lives only in the server's environment, never in the database or in any report file. Without the key configured, reports still generate and are labeled honestly as unkeyed, since a hash without a key is real evidence of accidental corruption but not of deliberate tampering by anyone with write access to the data.
 
 ---
 
-## 🎬 Demo Video
-
-**→ [Watch the full demo](https://drive.google.com/file/d/1RtKOd7ZGosIjfbv0P2DvejNA0ZeIZe7D/view?usp=sharing)**
-
----
-
-## 🏗️ Architecture
+## Architecture
 
 ```
 Client Browser
-      │
-      ▼
-┌─────────────────────────────────┐
-│     GATEKEEPER API (FastAPI)    │
-│  /session/start   → log contract│
-│  /access/request  → log + block │
-│  /session/exit    → generate PDF│
-└──────────────┬──────────────────┘
-               │
-       ┌───────┴────────┐
-       │                │
-  SQLite DB        ReportLab PDF
-  (sessions,       (SHA-256 signed
-   access logs)     audit report)
-               │
-       ┌───────┴────────┐
-       │                │
-  ScoutAgent       Approval UI
-  (live agent —     (HTML/JS
-   real API calls)  frontend)
+      |
+      v
++-----------------------------------+
+|     GATEKEEPER API (FastAPI)      |
+|  /session/start   -> register     |
+|  /session/approve -> human-gated  |
+|  /access/request  -> policy check |
+|  /session/exit    -> signed PDF   |
++----------------+-------------------+
+                 |
+        +--------+---------+
+        |                  |
+   SQLite DB          ReportLab PDF
+   (sessions,         (HMAC-signed
+    access logs)       when keyed)
+                 |
+        +--------+---------+
+        |                  |
+   ScoutAgent          Approval UI
+   (real scan agent,   (operator-token
+    real API calls)     gated)
 ```
 
 ---
 
-## 🛠️ Tech Stack
+## Tech stack
 
 | Component | Technology |
 |-----------|-----------|
 | Backend API | Python + FastAPI |
 | Database | SQLite |
-| PDF Generation | ReportLab |
-| Audit Integrity | SHA-256 over full log content · independently verifiable |
+| PDF generation | ReportLab |
+| Audit integrity | HMAC-SHA256 when `GATEKEEPER_AUDIT_KEY` is set, plain SHA-256 otherwise, always labeled honestly, independently re-verifiable via `verify_audit.py` |
+| Session approval | Operator-token gated, constant-time comparison, fails closed if unconfigured |
 | Frontend | Vanilla HTML/CSS/JS |
-| Deployment | Ubuntu VPS |
-| AI risk analysis | AWS Bedrock — Claude Sonnet 4.6 (live) |
+| AI risk analysis | AWS Bedrock (Claude Sonnet 4.6), or direct Anthropic API, Azure OpenAI, or a fully local model, selected per engagement |
 
 ---
 
-## ⚡ Quick Start
+## Quick start
 
 ```bash
-# Clone the repo
-git clone https://github.com/Apex-accelerators/Gatekeeper.git
+git clone git@github.com:Calo0420/Gatekeeper.git
 cd Gatekeeper
 
-# Set up environment
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-# Configure
 cp .env.example .env
+# Set OPERATOR_PASSWORD-equivalent security values before running:
+#   GATEKEEPER_OPERATOR_TOKEN  — required for /session/approve to work at all
+#   GATEKEEPER_AUDIT_KEY       — optional but strongly recommended, generate with:
+#                                 python3 -c "import secrets; print(secrets.token_urlsafe(32))"
 
-# Run
 uvicorn main:app --host 0.0.0.0 --port 8001 --reload
 ```
 
-Open `http://localhost:8001` in your browser.
+Open `http://localhost:8001` in a browser.
 
 ---
 
-## 🔌 API Reference
+## API reference
 
-### Start a Session
+### Start a session
 ```http
 POST /session/start
 Content-Type: application/json
@@ -136,23 +106,25 @@ Content-Type: application/json
 {
   "agent_id": "scout-001",
   "agent_name": "ScoutAgent",
-  "requested_scope": ["network_config.json", "server_inventory.csv"]
+  "requested_scope": ["scan_linux_environment", "check_cis_benchmarks"]
 }
 ```
 
-### Approve a Session
+### Approve a session
+Requires the operator token, held only by the human reviewing the request in the browser, never by ScoutAgent itself.
 ```http
 POST /session/approve
 Content-Type: application/json
+X-Operator-Token: <the configured GATEKEEPER_OPERATOR_TOKEN>
 
 {
   "session_id": "1B6A86A4",
-  "approved_by": "Oscar",
-  "approved_scope": ["network_config.json", "server_inventory.csv"]
+  "approved_by": "Operator",
+  "approved_scope": ["scan_linux_environment", "check_cis_benchmarks"]
 }
 ```
 
-### Request Access to a Resource
+### Request access to a resource
 ```http
 POST /access/request
 Content-Type: application/json
@@ -160,21 +132,21 @@ Content-Type: application/json
 {
   "session_id": "1B6A86A4",
   "token": "GK-1B6A86A4-TOKEN",
-  "resource": "network_config.json",
+  "resource": "/opt/client-app/.env",
   "action": "read"
 }
 ```
 
-Response:
+Response, credential files are detected as in-scope but reads are still blocked at the policy layer regardless of session approval:
 ```json
 {
-  "allowed": true,
-  "reason": "Within approved scope",
-  "resource": "network_config.json"
+  "allowed": false,
+  "reason": "Credential file detected — read blocked by policy (CIS Control 3)",
+  "resource": "/opt/client-app/.env"
 }
 ```
 
-### Close Session and Generate Report
+### Close session and generate the report
 ```http
 POST /session/exit
 Content-Type: application/json
@@ -185,128 +157,47 @@ Content-Type: application/json
 }
 ```
 
-### Download Audit Report
+### Download the signed audit report
 ```http
 GET /session/{session_id}/report
 ```
 
-Returns a signed PDF audit report.
-
 ---
 
-## 🧪 Run the Demo Flow
+## Verify a report yourself
+
+The audit hash is not a claim to be trusted, it's math a client's own security team can rerun independently.
 
 ```bash
-# 1. Start a session
-curl -s -X POST http://localhost:8001/session/start \
-  -H "Content-Type: application/json" \
-  -d '{"agent_id":"scout-001","agent_name":"ScoutAgent","requested_scope":["network_config.json","server_inventory.csv","performance_logs.txt"]}' \
-  | python3 -m json.tool
-
-# 2. Approve it (replace SESSION_ID)
-curl -s -X POST http://localhost:8001/session/approve \
-  -H "Content-Type: application/json" \
-  -d '{"session_id":"SESSION_ID","approved_by":"Oscar","approved_scope":["network_config.json","server_inventory.csv","performance_logs.txt"]}' \
-  | python3 -m json.tool
-
-# 3. Run the mock agent (replace SESSION_ID)
-python mock_agent.py SESSION_ID
-```
-
-Expected output:
-```
-[ScoutAgent] Starting scan — Session XXXXXXXX
-
-  [OK     ]  network_config.json
-  [OK     ]  server_inventory.csv
-  [OK     ]  performance_logs.txt
-  [BLOCKED]  employee_salaries.xlsx
-
-[ScoutAgent] Scan complete. Requesting clean exit...
-
-Session closed.
-Requests: 4 | Blocked: 1
-Audit report: http://localhost:8001/session/XXXXXXXX/report
-```
-
----
-
-## 📄 Sample Audit Report
-
-```
-GATEKEEPER — AI TRUST AUDIT REPORT
-Everforth Innovation Labs | Rogue Protocol
-
-Session ID:    1B6A86A4
-Agent:         ScoutAgent (scout-001)
-Approved by:   Oscar
-Start:         2026-05-23 05:03:29 UTC
-Exit:          2026-05-23 05:03:50 UTC
-
-APPROVED SCOPE:
-  • network_config.json
-  • server_inventory.csv
-  • performance_logs.txt
-
-ACCESS LOG:
-  ALLOWED   network_config.json      READ   05:03:45
-  ALLOWED   server_inventory.csv     READ   05:03:47
-  ALLOWED   performance_logs.txt     READ   05:03:48
-  BLOCKED   employee_salaries.xlsx   READ   05:03:49
-
-Total: 4 requests | Blocked: 1
-EXIT STATUS: 1 BLOCKED ATTEMPT(S) LOGGED
-
-Audit Hash (SHA-256):
-1b23c2f8af7907cce343c5c3c665d0e266fe6f03c4714266b5b29f5aa70592b6
-
-Generated: 2026-05-23T05:03:50 UTC
-```
-
----
-
-## 🔎 Verify It Yourself
-
-The audit hash isn't "trust me" — it's math the client can run. Every report is signed with a SHA-256 over the **full access-log content** (not just counts), so altering *what was accessed vs. what was reported* changes the hash.
-
-```bash
-# Recompute from the database and compare to the signed report
 python3 verify_audit.py <SESSION_ID>
+#   hash mode   : hmac-sha256   (or sha256-unkeyed, with a warning, if no key is configured)
 #   OK  MATCH    — audit integrity verified
 #   !!  MISMATCH — the access record was altered after signing
 ```
 
-Flip a single BLOCKED entry to ALLOWED and the recomputed hash no longer matches the signed report. That is how a client's security team independently proves the audit trail was never changed — without taking anyone's word for it.
+This was tested for real, not just designed on paper: a blocked access entry was deliberately flipped to allowed directly in the database, and `verify_audit.py` correctly reported a mismatch with a recomputed hash that genuinely differed from the issued one. The database was restored and verification passed cleanly again afterward.
 
 ---
 
-## 🗺️ Roadmap
+## Current state
 
-| Phase | Features |
-|-------|---------|
-| ✅ MVP | Approval UI, live monitor, signed PDF audit report |
-| ✅ Live (now) | Real ScoutAgent integration · AWS Bedrock (Claude Sonnet 4.6) risk analysis · tamper-evident SHA-256 audit + independent verifier (`verify_audit.py`) |
-| 🔜 Next | Azure Key Vault signatures · multi-agent support · client portal · ServiceNow integration |
-| 🔜 Later | Windows desktop client (Chaperon) · enterprise SSO |
+Live and integrated with a real ScoutAgent 2.0 scan, not mocked. Every code path referenced in this document has been live-tested against a running instance: session approval bypass attempts (no token, wrong token, unconfigured server) all correctly denied; database tampering correctly detected by the audit verifier; dependency scan clean on all pinned packages as of the most recent check.
 
 ---
 
-## 👥 Team
+## Roadmap
 
-**Rogue Protocol** — Galactic Hackathon 2026
-
-| Name | Role |
-|------|------|
-| Oscar Reyes Luna | Captain · Builder · Everforth Innovation Labs |
-
----
-
-## 📜 License
-
-MIT License — see [LICENSE](LICENSE) for details.
+| Status | Item |
+|--------|------|
+| Done | Operator-token gated approval, fails closed |
+| Done | HMAC-SHA256 audit signing with honest fallback labeling |
+| Done | Real ScoutAgent integration, AI risk analysis via AWS Bedrock |
+| Next | Hash-chained audit ledger rather than a single per-session hash |
+| Next | Role-based access instead of one shared operator secret |
+| Later | Multi-agent session support, client-facing portal |
 
 ---
 
-<div align="center">
-  <sub>Built with 🤙 by Rogue Protocol · Everforth Innovation Labs · Galactic Hackathon 2026</sub>
-</div>
+## License
+
+MIT License, see [LICENSE](LICENSE).
