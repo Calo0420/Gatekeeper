@@ -1,4 +1,4 @@
-import uuid, json, os
+import uuid, json, os, hmac
 from datetime import datetime
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
@@ -9,6 +9,29 @@ from report_generator import generate_report
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
+
+
+def _verify_operator_token(request: Request):
+    """
+    Requires the human operator's shared secret before a scan session can be
+    approved. This is THE security control behind Gatekeeper's core claim —
+    'a human must authorize before any scan runs.' Without this, anyone who
+    observes a pending session_id (which ScoutAgent's own UI broadcasts
+    unauthenticated for live-sync purposes) could POST directly to /approve
+    and self-authorize a scan with zero human involvement.
+
+    Fails CLOSED: if GATEKEEPER_OPERATOR_TOKEN isn't configured server-side
+    at all, approval is refused entirely rather than silently falling back
+    to an open door. Never repeat the hardcoded-weak-default pattern found
+    in ScoutAgent's OPERATOR_PASSWORD fallback — an unset secret here must
+    mean "nothing can be approved," not "anything can."
+    """
+    configured = os.getenv("GATEKEEPER_OPERATOR_TOKEN", "")
+    if not configured:
+        raise HTTPException(500, "GATEKEEPER_OPERATOR_TOKEN not configured on server — approval is disabled until set")
+    supplied = request.headers.get("X-Operator-Token", "")
+    if not hmac.compare_digest(supplied, configured):
+        raise HTTPException(401, "Invalid or missing operator token")
 
 class StartRequest(BaseModel):
     agent_id: str
@@ -38,7 +61,8 @@ def start_session(req: StartRequest):
     return {"session_id": session_id, "status": "pending_approval"}
 
 @router.post("/approve")
-def approve_session(req: ApproveRequest):
+def approve_session(req: ApproveRequest, request: Request):
+    _verify_operator_token(request)
     db = get_db()
     db.execute("UPDATE sessions SET status='active', approved_by=?, approved_scope=? WHERE session_id=?",
         (req.approved_by, json.dumps(req.approved_scope), req.session_id))
